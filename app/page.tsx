@@ -1,65 +1,140 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState } from 'react';
+import { AgentRole, AgentReport } from '@/app/types';
+import { AgentCard } from '@/app/components/AgentCard';
+import { SearchInput } from '@/app/components/SearchInput';
+import { VerdictGauge } from '@/app/components/VerdictGauge';
+
+const INITIAL_REPORTS: Record<AgentRole, AgentReport> = {
+  scout: { role: 'scout', title: 'Scout', status: 'idle', content: '', confidence: 0, dataPoints: [] },
+  insider: { role: 'insider', title: 'Insider', status: 'idle', content: '', confidence: 0, dataPoints: [] },
+  meteorologist: { role: 'meteorologist', title: 'Meteorologist', status: 'idle', content: '', confidence: 0, dataPoints: [] },
+  bookie: { role: 'bookie', title: 'Bookie', status: 'idle', content: '', confidence: 0, dataPoints: [] },
+};
+
+export default function WarRoom() {
+  const [player, setPlayer] = useState('');
+  const [propValue, setPropValue] = useState('');
+  const [propType, setPropType] = useState('Pass Yards');
+  const [reports, setReports] = useState<Record<AgentRole, AgentReport>>(INITIAL_REPORTS);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const fetchAgentAnalysis = async (role: AgentRole) => {
+    try {
+      // Construct the prop string (e.g. "250 Pass Yards")
+      const prop = `${propValue} ${propType}`;
+
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player, prop, agent: role }),
+      });
+      const data = await res.json();
+      return { ...data, role, status: 'completed' } as AgentReport;
+    } catch (error) {
+      console.error(`Error fetching ${role}:`, error);
+      return {
+        role,
+        title: role,
+        status: 'completed',
+        content: 'Analysis failed due to connection error.',
+        confidence: 0,
+        dataPoints: []
+      } as AgentReport;
+    }
+  };
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true);
+
+    // Reset States
+    setReports({
+      scout: { ...INITIAL_REPORTS.scout, status: 'working' },
+      insider: { ...INITIAL_REPORTS.insider, status: 'working' },
+      meteorologist: { ...INITIAL_REPORTS.meteorologist, status: 'working' },
+      bookie: { ...INITIAL_REPORTS.bookie, status: 'idle' },
+    });
+
+    // 1. Parallel Independent Agents
+    const results = await Promise.all([
+      fetchAgentAnalysis('scout'),
+      fetchAgentAnalysis('insider'),
+      fetchAgentAnalysis('meteorologist'),
+    ]);
+
+    // Update Independent Agents
+    setReports(prev => ({
+      ...prev,
+      scout: results[0],
+      insider: results[1],
+      meteorologist: results[2],
+      bookie: { ...prev.bookie, status: 'working' } // Start Bookie
+    }));
+
+    // 2. Sequential Bookie Agent (Reading the others)
+    const bookieResult = await fetchAgentAnalysis('bookie');
+
+    setReports(prev => ({
+      ...prev,
+      bookie: bookieResult
+    }));
+
+    setIsAnalyzing(false);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 p-6 md:p-12 font-sans selection:bg-indigo-500/30">
+
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-16 text-center space-y-4">
+        <div className="inline-block px-4 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">
+          Multi-Agent Sports Intelligence
+        </div>
+        <h1 className="text-5xl md:text-7xl font-black tracking-tighter bg-gradient-to-br from-white via-zinc-400 to-zinc-700 bg-clip-text text-transparent">
+          ALPHA LINE SPORTS
+        </h1>
+        <p className="text-zinc-500 text-lg max-w-2xl mx-auto">
+          Deploy a swarm of AI agents to scout matchups, analyze insider news, and calculate weather impacts before placing your bet.
+        </p>
+      </div>
+
+      {/* Input Section */}
+      <div className="mb-20">
+        <SearchInput
+          player={player}
+          propValue={propValue}
+          propType={propType}
+          setPlayer={setPlayer}
+          setPropValue={setPropValue}
+          setPropType={setPropType}
+          onAnalyze={handleAnalyze}
+          isAnalyzing={isAnalyzing}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Agents Grid */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <AgentCard report={reports.scout} />
+        <AgentCard report={reports.insider} />
+        <AgentCard report={reports.meteorologist} />
+      </div>
+
+      {/* Final Verdict */}
+      <div className="max-w-4xl mx-auto">
+        {reports.bookie.status !== 'idle' && (
+          <div className={reports.bookie.status === 'working' ? 'opacity-50' : 'opacity-100'}>
+            {reports.bookie.status === 'working' ? (
+              <div className="h-64 rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/10 flex items-center justify-center">
+                <div className="text-zinc-500 font-mono animate-pulse">The Bookie is synthesizing intelligence...</div>
+              </div>
+            ) : (
+              <VerdictGauge report={reports.bookie} />
+            )}
+          </div>
+        )}
+      </div>
+
+    </main>
   );
 }
