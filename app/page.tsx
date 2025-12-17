@@ -28,7 +28,7 @@ export default function WarRoom() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player, prop, agent: role }),
+        body: JSON.stringify({ player, prop, line: propValue, agent: role }),
       });
       const data = await res.json();
       return { ...data, role, status: 'completed' } as AgentReport;
