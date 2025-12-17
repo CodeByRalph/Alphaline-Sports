@@ -23,76 +23,84 @@ const PROP_TYPES = [
     'Completions'
 ];
 
-export const SearchInput: React.FC<SearchInputProps> = ({ 
-    player, 
-    propValue, 
-    propType, 
-    setPlayer, 
-    setPropValue, 
-    setPropType, 
-    onAnalyze, 
-    isAnalyzing 
+export const SearchInput: React.FC<SearchInputProps> = ({
+    player,
+    propValue,
+    propType,
+    setPlayer,
+    setPropValue,
+    setPropType,
+    onAnalyze,
+    isAnalyzing
 }) => {
     return (
-        <div className="w-full max-w-4xl mx-auto bg-zinc-900/80 border border-zinc-800 p-6 rounded-2xl shadow-2xl backdrop-blur-xl">
-            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.8fr_1.2fr_1fr] gap-4">
-                {/* Player Input */}
-                <div className="relative group">
+        <div className="w-full max-w-6xl mx-auto bg-brand-black/90 border border-zinc-800 p-2 md:p-4 rounded-xl shadow-2xl backdrop-blur-xl">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-1">
+                {/* Player Input (Full width on mobile, 5 cols on MD) */}
+                <div className="col-span-12 md:col-span-5 relative group">
+                    <div className="absolute top-2 left-4 text-[10px] uppercase font-black tracking-widest text-zinc-600 pointer-events-none group-focus-within:text-brand-cyan transition-colors">Target Athlete</div>
                     <input
                         type="text"
-                        placeholder="PLAYER (e.g. Lamar Jackson)"
+                        placeholder="e.g. Lamar Jackson"
                         value={player}
                         onChange={(e) => setPlayer(e.target.value)}
                         disabled={isAnalyzing}
-                        className="w-full bg-zinc-950 border border-zinc-700 text-zinc-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-600 font-mono"
+                        className="w-full h-16 bg-zinc-900/40 border border-zinc-800 text-zinc-100 px-4 pt-5 pb-1 rounded-lg focus:ring-1 focus:ring-brand-cyan/50 focus:border-brand-cyan outline-none transition-all placeholder:text-zinc-700 font-bold text-lg"
                     />
                 </div>
 
-                {/* Prop Value Input */}
-                <div className="relative group">
+                {/* Prop Value Input (half width on mobile, 2 cols on MD) */}
+                <div className="col-span-6 md:col-span-2 relative group">
+                    <div className="absolute top-2 left-4 text-[10px] uppercase font-black tracking-widest text-zinc-600 pointer-events-none group-focus-within:text-brand-green transition-colors">Line</div>
                     <input
                         type="number"
-                        placeholder="LINE (e.g. 215.5)"
+                        placeholder="0.0"
                         value={propValue}
                         onChange={(e) => setPropValue(e.target.value)}
                         disabled={isAnalyzing}
-                        className="w-full bg-zinc-950 border border-zinc-700 text-zinc-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-600 font-mono remove-arrow"
+                        className="w-full h-16 bg-zinc-900/40 border border-zinc-800 text-zinc-100 px-4 pt-5 pb-1 rounded-lg focus:ring-1 focus:ring-brand-green/50 focus:border-brand-green outline-none transition-all placeholder:text-zinc-700 font-mono text-lg remove-arrow"
                     />
                 </div>
 
-                {/* Prop Type Dropdown */}
-                <div className="relative group">
+                {/* Prop Type Dropdown (half width on mobile, 3 cols on MD) */}
+                <div className="col-span-6 md:col-span-3 relative group">
+                    <div className="absolute top-2 left-4 text-[10px] uppercase font-black tracking-widest text-zinc-600 pointer-events-none group-focus-within:text-brand-cyan transition-colors">Market</div>
                     <select
                         value={propType}
                         onChange={(e) => setPropType(e.target.value)}
                         disabled={isAnalyzing}
-                        className="w-full bg-zinc-950 border border-zinc-700 text-zinc-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all appearance-none font-mono cursor-pointer"
+                        className="w-full h-16 bg-zinc-900/40 border border-zinc-800 text-zinc-100 px-4 pt-5 pb-1 rounded-lg focus:ring-1 focus:ring-brand-cyan/50 focus:border-brand-cyan outline-none transition-all appearance-none font-bold text-sm md:text-lg cursor-pointer truncate pr-8"
                     >
                         {PROP_TYPES.map((type) => (
-                            <option key={type} value={type}>{type}</option>
+                            <option key={type} value={type} className="bg-zinc-900">{type}</option>
                         ))}
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none w-4 h-4" />
+                    <ChevronDown className="absolute right-4 top-1/2 mt-2 -translate-y-1/2 text-zinc-600 pointer-events-none w-5 h-5 group-hover:text-zinc-400 transition-colors" />
                 </div>
 
-                {/* Analyze Button */}
-                <button
-                    onClick={onAnalyze}
-                    disabled={isAnalyzing || !player || !propValue}
-                    className={`flex items-center justify-center gap-2 font-bold uppercase tracking-wider rounded-xl transition-all
-                    ${isAnalyzing || !player || !propValue
-                            ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.5)] hover:shadow-[0_0_30px_rgba(79,70,229,0.7)]'
-                        } py-3 px-6`}
-                >
-                    {isAnalyzing ? (
-                        <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Running</span>
-                    ) : (
-                        <>Run Analysis</>
-                    )}
-                </button>
+                {/* Analyze Button (Full width on mobile, 2 cols on MD) */}
+                <div className="col-span-12 md:col-span-2">
+                    <button
+                        onClick={onAnalyze}
+                        disabled={isAnalyzing || !player || !propValue}
+                        className={`w-full h-16 flex items-center justify-center gap-2 font-black uppercase tracking-wider rounded-lg transition-all transform active:scale-[0.98]
+                        ${isAnalyzing || !player || !propValue
+                                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700'
+                                : 'bg-brand-cyan hover:bg-cyan-400 text-brand-black shadow-[0_0_20px_rgba(64,240,255,0.4)] hover:shadow-[0_0_30px_rgba(64,240,255,0.6)] border border-brand-cyan'
+                            }`}
+                    >
+                        {isAnalyzing ? (
+                            <div className="flex items-center gap-2 animate-pulse">
+                                <span className="w-2 h-2 rounded-full bg-black animate-bounce" />
+                                <span className="w-2 h-2 rounded-full bg-black animate-bounce delay-75" />
+                                <span className="w-2 h-2 rounded-full bg-black animate-bounce delay-150" />
+                            </div>
+                        ) : (
+                            <>SCOUT <Search className="w-4 h-4 ml-1 stroke-2" /></>
+                        )}
+                    </button>
+                </div>
             </div>
-            
             <style jsx>{`
                 /* Remove arrows from number input */
                 .remove-arrow::-webkit-outer-spin-button,

@@ -45,24 +45,35 @@ export const AgentCard: React.FC<AgentCardProps> = ({ report }) => {
     }
 
     return (
-        <div className={`rounded-xl border ${getBorderColor()} bg-zinc-900/50 backdrop-blur-md p-6 flex flex-col gap-4 shadow-xl transition-all duration-300 hover:scale-[1.02]`}>
-            <div className="flex items-center gap-3 border-b border-zinc-800 pb-3">
-                {getIcon()}
-                <div>
-                    <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">{role}</h3>
-                    <p className="text-zinc-400 text-xs uppercase tracking-wider">{title}</p>
+        <div className={`h-full group relative rounded-sm border ${getBorderColor()} bg-brand-black/90 px-5 py-4 flex flex-col gap-4 shadow-xl transition-all duration-300 hover:border-opacity-100 border-opacity-40`}>
+
+            {/* Terminal Header */}
+            <div className="flex items-center justify-between border-b border-dashed border-zinc-800 pb-3">
+                <div className="flex items-center gap-3">
+                    {getIcon()}
+                    <div className="flex flex-col">
+                        <h3 className="font-extrabold text-sm text-zinc-100 tracking-wider font-mono uppercase">{role}_AGENT</h3>
+                        <p className="text-zinc-500 text-[10px] font-mono uppercase tracking-tight">ID: {title.replace(/\s/g, '_').toUpperCase()}</p>
+                    </div>
                 </div>
-                <div className="ml-auto text-xs font-mono text-zinc-500">{confidence}% CONF</div>
+
+                {/* Confidence Stat */}
+                <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded-sm">
+                    <div className={`w-1.5 h-1.5 rounded-full ${confidence > 75 ? 'bg-brand-green' : confidence > 50 ? 'bg-brand-cyan' : 'bg-brand-orange'} animate-pulse`} />
+                    <span className="text-xs font-mono font-bold text-zinc-300">{confidence}%</span>
+                </div>
             </div>
 
-            <p className="text-zinc-300 text-sm leading-relaxed flex-grow">
+            {/* Data Feed Content */}
+            <div className="flex-grow font-mono text-xs leading-6 text-zinc-400">
+                <span className="text-brand-cyan/50 mr-2">{'>'}</span>
                 {content}
-            </p>
+            </div>
 
-            <div className="flex flex-wrap gap-2 mt-auto pt-4">
+            <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-zinc-800/50">
                 {dataPoints.map((point, i) => (
-                    <span key={i} className="px-2 py-1 bg-zinc-800/80 rounded-full text-[10px] text-zinc-400 font-mono uppercase border border-zinc-700">
-                        {point}
+                    <span key={i} className="px-2 py-0.5 bg-zinc-900/50 rounded-xs text-[10px] text-zinc-500 font-mono uppercase border border-zinc-800 truncate max-w-full">
+                        #{point.replace(/\s/g, '_')}
                     </span>
                 ))}
             </div>
