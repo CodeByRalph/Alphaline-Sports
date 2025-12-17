@@ -14,33 +14,50 @@ export async function POST(request: Request) {
 
         switch (agent) {
             case 'scout':
-                if (stats && nextGame) {
-                    const gameLogs = stats.games.map((g: any) => {
-                        const p = g.Passing || {};
-                        const r = g.Rushing || {};
-                        const passYds = p.passYds || p.passingYards || '0';
-                        const rushYds = r.rushYds || r.rushingYards || '0';
-                        const date = g.gameDate || 'Recent';
-                        return `${date} vs ${g.opp || 'Opp'}: ${passYds} Pass, ${rushYds} Rush`;
-                    });
+                // New Sportradar Integration
+                // Defaulting to 2025 Week 15 for demo purposes if not specified
+                // Try to resolve team from player map or input (simplification for demo)
+                const teamMap: Record<string, string> = {
+                    'Lamar Jackson': 'BAL',
+                    'Josh Allen': 'BUF',
+                    'Patrick Mahomes': 'KC',
+                    'Kyren Williams': 'LAR',
+                    'Christian McCaffrey': 'SF',
+                    'Tyreek Hill': 'MIA',
+                    'CeeDee Lamb': 'DAL',
+                    'Justin Jefferson': 'MIN'
+                };
+
+                // If the frontend sends 'team' in the body, use it. Otherwise, try map.
+                const inputBody = await request.clone().json();
+                const teamAlias = inputBody.team || teamMap[player] || 'BAL'; // Fallback to BAL for demo safety
+
+                const { ScoutPacketAssembler } = await import('@/app/lib/scout-packet/assembler');
+                const packet = await ScoutPacketAssembler.create(2025, 15, teamAlias);
+
+                if (packet) {
+                    const nextGame = packet.meta.opponent ? `vs ${packet.meta.opponent}` : 'Unresolved Matchup';
 
                     responseData = {
-                        title: 'Scouting Report',
-                        content: `Analyzed ${stats.longName}'s upcoming matchup against ${nextGame.opponent} (${nextGame.location}). The ${nextGame.opponent} defense is ranked ${nextGame.oppDefenseRank}. Recent form shows consistent volume.`,
-                        confidence: 90,
+                        title: 'Scout Packet (Sportradar v1)',
+                        content: `Generated packet for ${packet.meta.team} ${nextGame}. Offense Identity: ${packet.team_identity_tendencies.offensive_identity || 'N/A'}.`,
+                        confidence: 95,
                         dataPoints: [
-                            `Matchup: vs ${nextGame.opponent}`,
-                            `Defense: ${nextGame.oppDefenseRank}`,
-                            ...gameLogs.slice(0, 2)
+                            `Trend: ${packet.team_identity_tendencies.offensive_identity}`,
+                            `Opponent: ${packet.meta.opponent || 'N/A'}`,
+                            `Freshness: ${new Date(packet.meta.data_freshness_timestamp).toLocaleTimeString()}`
                         ],
+                        // Full packet hidden in debug or extended view? 
+                        // For now, we return the standard structure but maybe attach the full packet as raw data if the frontend supported it.
+                        // We will log it for verification.
                     };
+                    console.log('Generated Scout Packet:', JSON.stringify(packet, null, 2));
                 } else {
-                    // Fallback
                     responseData = {
-                        title: 'Scouting Report (Offline)',
-                        content: `Could not retrieve live schedule for ${player}. Relying on season averages.`,
-                        confidence: 50,
-                        dataPoints: ['Data Unavailable'],
+                        title: 'Scout Report (Failed)',
+                        content: 'Could not generate scout packet.',
+                        confidence: 0,
+                        dataPoints: ['Error']
                     };
                 }
                 break;
