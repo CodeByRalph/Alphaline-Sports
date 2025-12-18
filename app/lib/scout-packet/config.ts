@@ -1,6 +1,6 @@
 
 export const SPORTRADAR_CONFIG = {
-    API_KEY: process.env.SPORTRADAR_API_KEY || 'OEMQmZAxZcGMWJYJiPf1qIsXPxlnbcQwSTMcNTHZ', // Fallback for demo, but should be in env
+    API_KEY: process.env.SPORTRADAR_API_KEY!,
     BASE_URL: 'https://api.sportradar.us/nfl/official/trial/v7/en',
     CACHE_TTL: {
         SCHEDULE: 60 * 60 * 24, // 24 hours
