@@ -58,7 +58,8 @@ const { API_KEY, BASE_URL, CACHE_TTL } = SPORTRADAR_CONFIG;
 let lastRequestTime = 0;
 const MIN_DELAY_MS = 3000; // 3 seconds for trial API safety
 
-async function fetchSportradar<T>(endpoint: string): Promise<T> {
+
+export async function fetchSportradar<T>(endpoint: string): Promise<T> {
     // Wait until proper time slot
     const now = Date.now();
     const timeToWait = Math.max(0, MIN_DELAY_MS - (now - lastRequestTime));

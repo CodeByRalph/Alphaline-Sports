@@ -54,29 +54,74 @@ export async function POST(request: Request) {
                     packet: packet
                 });
 
+
             case 'insider':
-                await new Promise((resolve) => setTimeout(resolve, 1500));
-                const insiderContext = nextGame
-                    ? `Sources near the ${stats?.team} facility suggest a gameplan focused on exploiting the ${nextGame.opponent}'s secondary.`
-                    : `Rumors suggest a heavy workload this week.`;
+                const { InsiderAgent } = await import('@/app/lib/insider-packet/agent');
+                // We need team alias. Scout logic has a map, we can reuse or just use the passed team logic
+                // Replicating basic team resolution for now
+                const insiderTeamMap: Record<string, string> = {
+                    'Lamar Jackson': 'BAL', 'Josh Allen': 'BUF', 'Patrick Mahomes': 'KC',
+                    'Kyren Williams': 'LAR', 'Christian McCaffrey': 'SF', 'Tyreek Hill': 'MIA',
+                    'CeeDee Lamb': 'DAL', 'Justin Jefferson': 'MIN', 'Dak Prescott': 'DAL'
+                };
+                const insiderTeam = teamOverride || insiderTeamMap[player] || stats?.team || 'BAL';
+
+                const insiderReport = await InsiderAgent.analyze(player, insiderTeam);
+
+                if (!insiderReport || !insiderReport.analysis) {
+                    return NextResponse.json({
+                        title: 'Intel Unavailable',
+                        content: 'Source disconnected or analysis failed.',
+                        confidence: 0,
+                        dataPoints: ['No Data']
+                    });
+                }
+
+                const { analysis: insiderAnalysis } = insiderReport; // Renamed to avoid conflict with 'scout' case
+                // Use the Insider Brief for the main content
+                const contentStr = insiderAnalysis.insider_brief.join(' ');
+
+                // Determine confidence based on availability grade
+                let conf = 85;
+                if (insiderAnalysis.availability_overview.overall_availability_grade === 'Caution') conf = 65;
+                if (insiderAnalysis.availability_overview.overall_availability_grade === 'Risk') conf = 40;
 
                 return NextResponse.json({
                     title: 'Locker Room Intel',
-                    content: `${insiderContext} Injury reports are clean for ${player}, but the ${nextGame?.opponent || 'Opponent'} defense is banged up at linebacker.`,
-                    confidence: 85,
-                    dataPoints: ['Practice: Full Cohesion', `Opponent: ${nextGame?.opponent || 'Unknown'}`, 'Gameplan: Aggressive'],
+                    content: contentStr,
+                    confidence: conf,
+                    dataPoints: [
+                        `Grade: ${insiderAnalysis.availability_overview.overall_availability_grade}`,
+                        `Role: ${insiderAnalysis.role_stability_summary.overall_role_stability}`,
+                        `Risk: ${insiderAnalysis.risk_flags.late_injury_uncertainty || insiderAnalysis.risk_flags.snap_limit_risk ? 'HIGH' : 'LOW'}`
+                    ],
+                    structuredData: insiderReport.packet // Pass packet if needed, or we could pass analysis
                 });
 
+
             case 'meteorologist':
-                await new Promise((resolve) => setTimeout(resolve, 1500));
-                const weather = nextGame?.weather || 'Dome (Indoor)';
-                const location = nextGame?.location || 'Unknown Venue';
+                const { analyzeMeteorology } = await import('@/app/lib/meteorologist-packet/agent');
+                const meteorReport = await analyzeMeteorology(player);
+
+                if (!meteorReport) {
+                    return NextResponse.json({
+                        title: 'Forecast Unavailable',
+                        content: 'Unable to retrieve weather data.',
+                        confidence: 0,
+                        dataPoints: ['Data Missing']
+                    });
+                }
+
+                // Format for frontend
+                const summary = meteorReport.environment.weather_summary;
+                const impactReview = meteorReport.analysis?.user_weather_writeup[0] || "Analysis pending.";
 
                 return NextResponse.json({
                     title: 'Forecast & Conditions',
-                    content: `Kickoff at ${location} will see conditions: ${weather}. ${weather.includes('Rain') || weather.includes('Snow') || weather.includes('Wind') ? 'This could impact passing efficiency.' : 'Perfect conditions for offense.'}`,
-                    confidence: 95,
-                    dataPoints: [`Venue: ${location}`, `Conditions: ${weather}`, 'Impact: Neutral'],
+                    content: `${summary}. ${impactReview}`, // Fallback text content
+                    confidence: meteorReport.analysis?.overall_confidence === 'High' ? 95 : meteorReport.analysis?.overall_confidence === 'Medium' ? 75 : 50,
+                    dataPoints: [`${meteorReport.game.stadium}`, meteorReport.environment.type, meteorReport.environment.field],
+                    structuredData: meteorReport
                 });
 
             case 'bookie':

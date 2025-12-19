@@ -64,10 +64,56 @@ export const AgentCard: React.FC<AgentCardProps> = ({ report }) => {
                 </div>
             </div>
 
+
             {/* Data Feed Content */}
-            <div className="flex-grow font-mono text-xs leading-6 text-zinc-400">
-                <span className="text-brand-cyan/50 mr-2">{'>'}</span>
-                {content}
+            <div className="flex-grow font-mono text-xs leading-6 text-zinc-400 overflow-y-auto custom-scrollbar">
+                {role === 'meteorologist' && report.structuredData?.analysis ? (
+                    <div className="flex flex-col gap-3">
+                        {/* Stadium Header */}
+                        <div className="border-b border-white/5 pb-2 mb-1">
+                            <div className="text-brand-orange text-xs font-bold uppercase tracking-wider">{report.structuredData.game.stadium}</div>
+                            <div className="flex justify-between text-[10px] text-zinc-500 uppercase mt-1">
+                                <span>{report.structuredData.environment.type}</span>
+                                <span>{report.structuredData.environment.field}</span>
+                            </div>
+                        </div>
+
+                        {/* Weather Summary */}
+                        <div className="text-zinc-300 font-bold border-l-2 border-brand-orange pl-2">
+                            {report.structuredData.environment.weather_summary}
+                        </div>
+
+                        {/* Bullet Points */}
+                        <ul className="space-y-1 mt-1">
+                            {report.structuredData.analysis.user_weather_writeup.map((line: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2">
+                                    <span className="text-brand-orange mt-1">›</span>
+                                    <span className="text-zinc-400">{line}</span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        {/* Impact Grid */}
+                        <div className="grid grid-cols-2 gap-2 mt-2 bg-zinc-900/50 p-2 rounded border border-white/5">
+                            {Object.entries(report.structuredData.analysis.impact_scores).map(([key, val]) => (
+                                <div key={key} className="flex flex-col">
+                                    <span className="text-[9px] uppercase text-zinc-600 mb-1">{key.replace(/_/g, ' ')}</span>
+                                    <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full ${Number(val) > 0.6 ? 'bg-red-500' : Number(val) > 0.3 ? 'bg-yellow-500' : 'bg-brand-green'}`}
+                                            style={{ width: `${Number(val) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <span className="text-brand-cyan/50 mr-2">{'>'}</span>
+                        {content}
+                    </>
+                )}
             </div>
 
             <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-zinc-800/50">

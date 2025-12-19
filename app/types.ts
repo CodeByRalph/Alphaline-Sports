@@ -1,3 +1,6 @@
+
+import { MeteorologistReport } from './lib/meteorologist-packet/agent';
+
 export type AgentRole = 'scout' | 'insider' | 'meteorologist' | 'bookie';
 
 export interface AgentReport {
@@ -7,4 +10,5 @@ export interface AgentReport {
     content: string;
     confidence: number;
     dataPoints: string[];
+    structuredData?: MeteorologistReport | any;
 }
