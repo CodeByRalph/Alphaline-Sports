@@ -1,237 +1,166 @@
-'use client';
+import Link from 'next/link';
+import { ArrowRight, Bot, Cpu, Zap, Activity, Brain, Shield } from 'lucide-react';
 
-import React, { useState } from 'react';
-import { AgentRole, AgentReport } from '@/app/types';
-import { AgentCard } from '@/app/components/AgentCard';
-import { SearchInput } from '@/app/components/SearchInput';
-import { VerdictGauge } from '@/app/components/VerdictGauge';
-
-const INITIAL_REPORTS: Record<AgentRole, AgentReport> = {
-  scout: { role: 'scout', title: 'Scout', status: 'idle', content: '', confidence: 0, dataPoints: [] },
-  insider: { role: 'insider', title: 'Insider', status: 'idle', content: '', confidence: 0, dataPoints: [] },
-  meteorologist: { role: 'meteorologist', title: 'Meteorologist', status: 'idle', content: '', confidence: 0, dataPoints: [] },
-  bookie: { role: 'bookie', title: 'Bookie', status: 'idle', content: '', confidence: 0, dataPoints: [] },
-};
-
-export default function WarRoom() {
-  const [player, setPlayer] = useState('');
-  const [propValue, setPropValue] = useState('');
-  const [propType, setPropType] = useState('Pass Yards');
-  const [reports, setReports] = useState<Record<AgentRole, AgentReport>>(INITIAL_REPORTS);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  const fetchAgentAnalysis = async (role: AgentRole) => {
-    try {
-      // Construct the prop string (e.g. "250 Pass Yards")
-      const prop = `${propValue} ${propType}`;
-
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player, prop, line: propValue, agent: role }),
-      });
-      const data = await res.json();
-      return { ...data, role, status: 'completed' } as AgentReport;
-    } catch (error) {
-      console.error(`Error fetching ${role}:`, error);
-      return {
-        role,
-        title: role,
-        status: 'completed',
-        content: 'Analysis failed due to connection error.',
-        confidence: 0,
-        dataPoints: []
-      } as AgentReport;
-    }
-  };
-
-  const handleAnalyze = async () => {
-    setIsAnalyzing(true);
-
-    // Reset States
-    setReports({
-      scout: { ...INITIAL_REPORTS.scout, status: 'working' },
-      insider: { ...INITIAL_REPORTS.insider, status: 'working' },
-      meteorologist: { ...INITIAL_REPORTS.meteorologist, status: 'working' },
-      bookie: { ...INITIAL_REPORTS.bookie, status: 'idle' },
-    });
-
-    // 1. Parallel Independent Agents
-    const results = await Promise.all([
-      fetchAgentAnalysis('scout'),
-      fetchAgentAnalysis('insider'),
-      fetchAgentAnalysis('meteorologist'),
-    ]);
-
-    // Update Independent Agents
-    setReports(prev => ({
-      ...prev,
-      scout: results[0],
-      insider: results[1],
-      meteorologist: results[2],
-      bookie: { ...prev.bookie, status: 'working' } // Start Bookie
-    }));
-
-    // 2. Sequential Bookie Agent (Reading the others)
-    // We construct the context object to pass to the backend
-    const context = {
-      scout: results[0],
-      insider: results[1],
-      meteorologist: results[2]
-    };
-
-    // We need to pass this context to the fetch function. 
-    // Since fetchAgentAnalysis didn't support it, we'll call the API directly here or modify the function.
-    // Modifying the function is cleaner but for now let's just make the specific call for the bookie here to be explicit/functional.
-
-    try {
-      const prop = `${propValue} ${propType}`;
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          player,
-          prop,
-          line: propValue,
-          agent: 'bookie',
-          // PASS THE CONTEXT
-          context: context
-        }),
-      });
-      const bookieData = await res.json();
-      const bookieReport = { ...bookieData, role: 'bookie', status: 'completed' } as AgentReport;
-
-      setReports(prev => ({
-        ...prev,
-        bookie: bookieReport
-      }));
-
-    } catch (e) {
-      console.error("Bookie Failed", e);
-      setReports(prev => ({
-        ...prev,
-        bookie: { ...prev.bookie, status: 'completed', content: 'Master Agent Offline', confidence: 0 }
-      }));
-    }
-
-    setIsAnalyzing(false);
-  };
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen relative flex flex-col items-center selection:bg-brand-cyan/30">
-      {/* Background Ambience */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-brand-cyan/5 blur-[150px] rounded-full pointer-events-none -translate-y-1/2 -z-10" />
+    <div className="min-h-screen bg-zinc-950 text-white selection:bg-brand-cyan/30 overflow-x-hidden">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-cyan/5 blur-[120px] rounded-full animate-pulse-slow" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-brand-green/5 blur-[120px] rounded-full animate-pulse-slow delay-1000" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
+      </div>
 
-      {/* Header / Brand */}
-      <nav className="w-full max-w-7xl mx-auto px-6 py-8 flex items-center justify-between z-10">
-        <div className="flex items-center gap-4 group cursor-pointer">
-          <div className="relative w-12 h-12 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
-            <img src="/iso-logo.png" alt="A" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(64,240,255,0.5)]" />
+      {/* Navigation */}
+      <nav className="relative z-50 w-full max-w-7xl mx-auto px-6 py-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 relative">
+            <img src="/iso-logo.png" alt="Alphaline" className="w-full h-full object-contain" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-black tracking-tighter text-white italic">
-              ALPHALINE <span className="text-brand-cyan not-italic font-sans">SPORTS</span>
-            </h1>
-            <div className="h-0.5 w-full bg-gradient-to-r from-brand-cyan to-transparent opacity-50" />
-            <p className="text-[10px] font-mono tracking-[0.3em] text-zinc-500 uppercase mt-1">
-              Multi-Agent Intelligence
-            </p>
-          </div>
+          <span className="text-xl font-black italic tracking-tighter">ALPHALINE <span className="text-brand-cyan not-italic">SPORTS</span></span>
         </div>
-
-        {/* Status Indicator */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800">
-          <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
-          <span className="text-xs font-mono text-zinc-400">SYSTEM ONLINE</span>
+        <div className="flex gap-6">
+          <Link href="/dashboard" className="px-6 py-2 text-sm font-mono uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
+            Login
+          </Link>
+          <Link href="/dashboard" className="px-6 py-2 bg-white text-black text-sm font-mono uppercase tracking-widest border border-white hover:bg-transparent hover:border-brand-cyan hover:text-brand-cyan transition-all duration-300">
+            Join Now
+          </Link>
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      {/* Main Content Area - Mission Control Grid */}
-      <div className="w-full max-w-[1400px] z-10 px-4 md:px-6 my-4 md:my-6 flex-grow flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-6 pb-20">
+      {/* Hero Section */}
+      <main className="relative z-10 pt-32 pb-40 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
-        {/* TOP ROW: Input */}
-        <div className="col-span-12 mb-2 md:mb-4">
-          <SearchInput
-            player={player}
-            propValue={propValue}
-            propType={propType}
-            setPlayer={setPlayer}
-            setPropValue={setPropValue}
-            setPropType={setPropType}
-            onAnalyze={handleAnalyze}
-            isAnalyzing={isAnalyzing}
-          />
-        </div>
+          {/* Left: Text Content */}
+          <div className="space-y-6 animate-in fade-in slide-in-from-left-10 duration-1000">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-brand-green text-xs font-mono uppercase tracking-widest mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-green"></span>
+              </span>
+              System Online v2.0
+            </div>
 
-        {/* ORDER 1 (Mobile): The Verdict (Bookie) - User wants Answer First on mobile? 
-           Actually, usually Context First? 
-           Let's stick to Input -> Verdict (Center) -> Data (Scout) -> Context (others) for mobile 
-           so they see the result immediately? 
-           No, logically Data -> Verdict is the 'story'. 
-           But 'Mission Control' implies result focus.
-           Let's use 'order' classes to put Bookie second on mobile (after Input) if we want?
-           The current DOM order is Input -> Scout -> Bookie -> Context.
-           Result: Mobile = Input, then Scout card, then Bookie, then others.
-           Let's KEEP DOM order but adjust heights.
-        */}
+            <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9]">
+              SPORTS <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-green">INTELLIGENCE</span> <br />
+              EVOLVED.
+            </h1>
 
-        {/* LEFT FLANK: Scout (The Data) */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col h-auto lg:h-full lg:min-h-[500px]">
-          <AgentCard report={reports.scout} />
-        </div>
+            <p className="text-xl text-zinc-400 max-w-lg leading-relaxed border-l-2 border-brand-cyan/20 pl-6">
+              Clarity in a world of noise. Alphaline's autonomous agents synthesize millions of data points into a single, calibrated signal—empowering you to make decisions based on cold, hard logic.
+            </p>
 
-        {/* CENTER STAGE: The Verdict (Bookie) */}
-        <div className="col-span-12 lg:col-span-6 flex flex-col h-auto min-h-[400px] lg:h-full lg:min-h-[500px]">
-          <div className="h-full rounded-sm border border-brand-cyan/20 bg-brand-black/80 backdrop-blur-sm relative overflow-hidden flex flex-col p-1 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Link href="/dashboard" className="group relative px-8 py-4 bg-brand-cyan text-black font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden">
+                <span className="relative z-10">Get Initial Analysis</span>
+                <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 skew-y-12" />
+              </Link>
+              <Link href="/dashboard" className="px-8 py-4 bg-transparent border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:border-brand-cyan hover:text-brand-cyan transition-colors flex items-center justify-center">
+                View Demo
+              </Link>
+            </div>
+          </div>
 
-            {/* Decorative Header */}
-            <div className="h-8 bg-zinc-900/80 border-b border-brand-cyan/20 flex items-center justify-between px-4">
-              <span className="text-[10px] font-mono uppercase text-brand-cyan tracking-widest">Master_Control_Program</span>
-              <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+          {/* Right: Visual */}
+          <div className="relative animate-in fade-in slide-in-from-right-10 duration-1000 delay-200">
+            <div className="relative z-10 grid grid-cols-2 gap-4">
+              {/* Visual Cards representing the agents */}
+              <div className="col-span-2 bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-6 rounded-lg transform hover:-translate-y-2 transition-transform duration-500 group">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20 group-hover:border-purple-500/50 transition-colors">
+                    <Brain className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">Master Agent</h3>
+                    <p className="text-xs text-zinc-500 font-mono uppercase">Synthesis Engine</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500 w-[85%]" />
+                  </div>
+                  <div className="flex justify-between text-xs font-mono text-zinc-500">
+                    <span>Confidence</span>
+                    <span className="text-purple-400">85%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-6 rounded-lg transform hover:-translate-y-2 transition-transform duration-500 delay-75 group">
+                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center border border-brand-cyan/20 mb-4 group-hover:border-brand-cyan/50 transition-colors">
+                  <Activity className="w-5 h-5 text-brand-cyan" />
+                </div>
+                <h3 className="font-bold text-sm mb-1">Scout Agent</h3>
+                <p className="text-[10px] text-zinc-500 uppercase leading-none">Historical Data Recon</p>
+              </div>
+
+              <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-6 rounded-lg transform hover:-translate-y-2 transition-transform duration-500 delay-100 group">
+                <div className="w-10 h-10 bg-brand-green/10 rounded-lg flex items-center justify-center border border-brand-green/20 mb-4 group-hover:border-brand-green/50 transition-colors">
+                  <Shield className="w-5 h-5 text-brand-green" />
+                </div>
+                <h3 className="font-bold text-sm mb-1">Insider Agent</h3>
+                <p className="text-[10px] text-zinc-500 uppercase leading-none">Injury & Roster Intel</p>
               </div>
             </div>
 
-            {/* Main Display */}
-            <div className="flex-grow relative p-4 md:p-6 flex flex-col justify-center min-h-[300px]">
-              {reports.bookie.status === 'idle' && (
-                <div className="text-center space-y-4 opacity-30">
-                  <div className="mx-auto w-16 h-16 md:w-24 md:h-24 rounded-full border border-dashed border-brand-cyan animate-pulse-slow flex items-center justify-center">
-                    <div className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-brand-cyan/10" />
-                  </div>
-                  <p className="font-mono text-xs uppercase text-brand-cyan">Awating Parameters...</p>
-                </div>
-              )}
+            {/* Abstract Elements */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border border-zinc-800 rounded-full opacity-20 animate-spin-slow pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-dashed border-zinc-800 rounded-full opacity-20 animate-spin-reverse-slow pointer-events-none" />
+          </div>
 
-              {reports.bookie.status === 'working' && (
-                <div className="flex flex-col items-center justify-center space-y-6">
-                  <div className="w-full max-w-md h-1 md:h-2 bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-cyan animate-shimmer" style={{ width: '100%', backgroundSize: '200% 100%' }} />
-                  </div>
-                  <p className="font-mono text-xs md:text-sm uppercase text-brand-cyan animate-pulse text-center">Synthesizing vectors...</p>
-                </div>
-              )}
+        </div>
+      </main>
 
-              {reports.bookie.status === 'completed' && (
-                <VerdictGauge report={reports.bookie} />
-              )}
+      {/* Feature Strip */}
+      <section className="border-y border-zinc-900 bg-black/50 backdrop-blur-sm py-16">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-brand-cyan/30 transition-colors group">
+            <div className="mb-4 text-brand-cyan">
+              <Activity className="w-8 h-8" />
             </div>
+            <h3 className="text-xl font-bold italic text-white mb-2 group-hover:text-brand-cyan transition-colors">DEEP DATA RECON</h3>
+            <p className="text-zinc-500 text-sm leading-relaxed">
+              Scout Agent analyzes thousands of historical games, identifying trends, volume metrics, and efficiency stats that human analysts miss.
+            </p>
           </div>
-        </div>
 
-        {/* RIGHT FLANK: Context (Insider / Meteorologist) */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col md:flex-row lg:flex-col gap-4 md:gap-6 h-auto lg:h-full">
-          <div className="flex-1 w-full min-h-[200px]">
-            <AgentCard report={reports.insider} />
+          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-brand-green/30 transition-colors group">
+            <div className="mb-4 text-brand-green">
+              <Zap className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold italic text-white mb-2 group-hover:text-brand-green transition-colors">REAL-TIME INTEL</h3>
+            <p className="text-zinc-500 text-sm leading-relaxed">
+              Insider Agent monitors beat reporters and team news in real-time, catching injury updates and roster changes before the books react.
+            </p>
           </div>
-          <div className="flex-1 w-full min-h-[200px]">
-            <AgentCard report={reports.meteorologist} />
+
+          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-purple-500/30 transition-colors group">
+            <div className="mb-4 text-purple-500">
+              <Cpu className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold italic text-white mb-2 group-hover:text-purple-500 transition-colors">SYNTHESIS ENGINE</h3>
+            <p className="text-zinc-500 text-sm leading-relaxed">
+              Master Agent weighs conflicting signals from all sub-agents to generate a calibrated confidence score and clear data projection.
+            </p>
           </div>
         </div>
-      </div>
-    </main>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-zinc-900 bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center opacity-50 text-sm font-mono text-zinc-600">
+          <p>&copy; 2025 ALPHALINE SPORTS. ALL RIGHTS RESERVED.</p>
+          <div className="flex gap-6 mt-4 md:mt-0">
+            <a href="#" className="hover:text-brand-cyan">TERMS</a>
+            <a href="#" className="hover:text-brand-cyan">PRIVACY</a>
+            <a href="#" className="hover:text-brand-cyan">SYSTEM STATUS</a>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
