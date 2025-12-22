@@ -120,3 +120,97 @@ export function buildPlayers(
         return 0; // Placeholder sort
     }).slice(0, 15); // Return top 15
 }
+
+/**
+ * Build player data from Tank01 game logs
+ * This is the preferred method when Sportradar fails
+ */
+export function buildPlayerFromTank01(
+    playerName: string,
+    playerData: {
+        playerID: string;
+        longName: string;
+        team: string;
+        pos?: string;
+        games: Array<any>;
+    }
+): Player {
+    const games = playerData.games || [];
+    const gamesPlayed = games.length;
+
+    // Aggregate stats from recent games
+    let totalPassYards = 0, totalPassAtt = 0, totalPassTD = 0, totalInt = 0;
+    let totalRushYards = 0, totalCarries = 0, totalRushTD = 0;
+    let totalRecYards = 0, totalRec = 0, totalTargets = 0, totalRecTD = 0;
+
+    for (const game of games) {
+        // QB stats
+        totalPassYards += Number(game.passYds || 0);
+        totalPassAtt += Number(game.passAttempts || 0);
+        totalPassTD += Number(game.passTD || 0);
+        totalInt += Number(game.int || 0);
+
+        // RB stats
+        totalRushYards += Number(game.rushYds || 0);
+        totalCarries += Number(game.carries || 0);
+        totalRushTD += Number(game.rushTD || 0);
+
+        // WR/TE stats
+        totalRecYards += Number(game.recYds || 0);
+        totalRec += Number(game.receptions || 0);
+        totalTargets += Number(game.targets || 0);
+        totalRecTD += Number(game.recTD || 0);
+    }
+
+    // Derive per-game averages
+    const avgPassYards = gamesPlayed > 0 ? Math.round(totalPassYards / gamesPlayed) : null;
+    const avgRushYards = gamesPlayed > 0 ? Math.round(totalRushYards / gamesPlayed) : null;
+    const avgRecYards = gamesPlayed > 0 ? Math.round(totalRecYards / gamesPlayed) : null;
+
+    // Build usage metrics
+    const usage: PlayerUsage = {};
+    // Can't calculate shares without team totals
+
+    // Build efficiency metrics
+    const efficiency: PlayerEfficiency = {};
+    if (totalPassAtt > 0) {
+        efficiency.int_rate = Number(((totalInt / totalPassAtt) * 100).toFixed(1));
+    }
+    if (totalTargets > 0) {
+        efficiency.catch_rate = Number(((totalRec / totalTargets) * 100).toFixed(1));
+        efficiency.yards_per_target = Number((totalRecYards / totalTargets).toFixed(1));
+    }
+
+    // Create recent games summary for the player
+    const recentGames = games.slice(0, 4).map(g => ({
+        opponent: g.opp,
+        passYards: g.passYds,
+        rushYards: g.rushYds,
+        recYards: g.recYds,
+        touchdowns: (Number(g.passTD || 0) + Number(g.rushTD || 0) + Number(g.recTD || 0))
+    }));
+
+    // Return with extended type for Tank01-specific data
+    return {
+        id: playerData.playerID,
+        name: playerData.longName || playerName,
+        position: playerData.pos || 'UNK',
+        team: playerData.team,
+        availability: {
+            injury_status: null,
+            practice_participation_trend: null,
+            returning_from_injury_flag: false,
+            snap_expectation_note: null
+        },
+        usage,
+        efficiency,
+        trends: {},
+        // Extended Tank01 stats (will be available in packet)
+        sample_size: gamesPlayed,
+        avg_pass_yards: avgPassYards,
+        avg_rush_yards: avgRushYards,
+        avg_rec_yards: avgRecYards,
+        recent_games: recentGames
+    } as any;
+}
+

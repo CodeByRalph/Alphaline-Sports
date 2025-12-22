@@ -9,9 +9,9 @@ export interface InsiderReport {
 }
 
 export const InsiderAgent = {
-    analyze: async (playerName: string, teamAlias: string): Promise<InsiderReport | null> => {
+    analyze: async (playerName: string, teamAlias: string, context?: any): Promise<InsiderReport | null> => {
         // 1. Build the Packet (Data)
-        const packet = await assembleInsiderPacket(playerName, teamAlias);
+        const packet = await assembleInsiderPacket(playerName, teamAlias, context);
 
         if (!packet) {
             console.error("Insider Agent: Failed to assemble packet.");

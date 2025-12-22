@@ -1,122 +1,124 @@
 
 import { InsiderPacket } from './types';
-import { getOfficialInjuries, getTeamDepthChart, getLeagueHierarchy } from './fetcher';
+import { getPlayerInjuryStatus, getTeamRoster, buildDepthChartFromRoster, Tank01TeamRoster, getPlayerNews } from '../rapidapi';
 import { calculateVolatility, normalizeInjuryStatus } from './volatility';
-import { resolveGame } from '../scout-packet/fetcher';
-import { getCurrentNFLSeasonContext } from '../scout-packet/season-calendar';
 
-export async function assembleInsiderPacket(playerName: string, teamAlias: string): Promise<InsiderPacket | null> {
-    const context = getCurrentNFLSeasonContext();
+/**
+ * Assemble Insider Packet using Tank01 RapidAPI
+ * This version eliminates Sportradar dependency entirely
+ */
+export async function assembleInsiderPacket(
+    playerName: string,
+    teamAlias: string,
+    existingGameStats?: any
+): Promise<InsiderPacket | null> {
 
-    // 1. Context Metadata
-    const gameData = await resolveGame(context.season, context.week, teamAlias);
-    if (!gameData) return null; // Can't build packet without a game
-
-    // FALLBACK: Common stars map for when API fails (Trial Mode / Future Date)
-    const FALLBACK_PLAYERS: Record<string, { pos: string, id: string }> = {
-        'Lamar Jackson': { pos: 'QB', id: 'fake-id-lamar' },
-        'Patrick Mahomes': { pos: 'QB', id: 'fake-id-mahomes' },
-        'Josh Allen': { pos: 'QB', id: 'fake-id-allen' },
-        'Christian McCaffrey': { pos: 'RB', id: 'fake-id-cmc' },
-        'Tyreek Hill': { pos: 'WR', id: 'fake-id-hill' }
-    };
-
-    // 2. Data Fetching (Sequential for Rate Limits & Safety)
-    let injuriesRes = null;
-    try {
-        injuriesRes = await getOfficialInjuries(context.season, context.week);
-    } catch (e) {
-        console.warn(`Insider: Failed to fetch injuries for W${context.week} (Likely too early):`, e);
+    // 1. Get Game Context from shared stats (already fetched in route handler)
+    if (!existingGameStats || !existingGameStats.nextGame) {
+        console.warn("Insider: No game context provided");
+        return null;
     }
 
-    let depthRes: any = { team: { depth_chart: [] } };
-    try {
-        depthRes = await getTeamDepthChart(gameData.team_id);
-    } catch (e) {
-        console.warn(`Insider: Failed to fetch depth chart for ${teamAlias}:`, e);
-    }
+    const next = existingGameStats.nextGame;
 
-    // Hierarchy isn't strictly needed if we rely on name matching, skipping to save API call/time
+    // Calculate week from game date (approximate)
+    // NFL season starts around Sept 5, each week is ~7 days
+    const gameDate = next.gameDate; // YYYYMMDD format
+    const gameDateObj = new Date(
+        parseInt(gameDate.substring(0, 4)),
+        parseInt(gameDate.substring(4, 6)) - 1,
+        parseInt(gameDate.substring(6, 8))
+    );
+    const seasonStart = new Date(2025, 8, 4); // Sept 4, 2025
+    const weekNum = Math.ceil((gameDateObj.getTime() - seasonStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
 
-
-    // 3. Process Player Availability & Identity
-    // We try to find the player in BOTH Injury Report and Depth Chart to build a complete profile
-
-    let injuryData: any = null;
-    if (injuriesRes && injuriesRes.weeks && injuriesRes.weeks.length > 0) {
-        const teamInjuries = injuriesRes.weeks[0]?.teams?.find((t: any) => t.alias === teamAlias);
-        if (teamInjuries && teamInjuries.players) {
-            injuryData = teamInjuries.players.find((p: any) => p.name === playerName);
-        }
-    }
-
-    // Search Depth Chart for ID/Position if not in Injury Report
-    let depthPosition = 1;
-    let backupId = undefined;
-    let foundDepthPlayer: any = null;
-    let foundPos = 'UNK';
-
-    const teamDepth = depthRes.team.depth_chart;
-    if (teamDepth) {
-        for (const posGroup of teamDepth) {
-            const playerIndex = posGroup.players.findIndex((p: any) => p.name === playerName);
-            if (playerIndex !== -1) {
-                foundDepthPlayer = posGroup.players[playerIndex];
-                foundPos = posGroup.position; // "QB", "LWR", etc.
-
-                depthPosition = playerIndex + 1; // 1-indexed (Starter = 1)
-                // Find backup
-                if (posGroup.players[playerIndex + 1]) {
-                    backupId = posGroup.players[playerIndex + 1].id;
-                }
-                break;
-            }
-        }
-    }
-
-
-    const availability: any = {
-        player_id: injuryData?.id || foundDepthPlayer?.id || FALLBACK_PLAYERS[playerName]?.id || 'unknown',
-        name: playerName,
-        position: injuryData?.position || foundPos || FALLBACK_PLAYERS[playerName]?.pos || 'UNK',
+    const gameContext = {
+        season: 2025,
+        week: Math.max(1, Math.min(18, weekNum)), // Clamp to valid NFL weeks
+        game_id: `tank01-${next.gameDate}`,
         team: teamAlias,
-        injury_status: injuryData ? normalizeInjuryStatus(injuryData.injury.status) : 'healthy',
-        injury_designation: 'none',
-        injury_body_part: injuryData?.injury.body_part,
-        injury_severity: injuryData ? 'moderate' : 'unknown',
-        practice_participation: {},
-        injury_trend: 'unchanged',
-        returning_from_injury_flag: false,
-        snap_limit_expectation: 'unknown',
-        game_time_decision_flag: injuryData?.injury.status === 'Questionable'
+        opponent: next.opponent,
+        home_away: next.location.toLowerCase().includes('home') ? 'home' as const : 'away' as const,
+        kickoff_time: next.gameDate,
+        days_rest: 7,
+        short_week_flag: false,
+        data_freshness_timestamp: new Date().toISOString()
     };
 
-    const depthContext: any = {
+    // 2. Get Player Injury Status from Tank01
+    let playerInfo = await getPlayerInjuryStatus(playerName);
+
+    // 3. Get Team Roster for depth chart context
+    const roster = await getTeamRoster(teamAlias);
+    const depthChart = buildDepthChartFromRoster(roster);
+
+    // 4. Find player in depth chart
+    let depthPosition = 1;
+    let backupPlayer: Tank01TeamRoster | undefined;
+    let playerPos = playerInfo?.pos || 'UNK';
+
+    // Search normalized position groups
+    for (const [pos, players] of Object.entries(depthChart)) {
+        const playerIndex = players.findIndex(p =>
+            p.longName.toLowerCase().includes(playerName.toLowerCase()) ||
+            playerName.toLowerCase().includes(p.longName.split(' ')[1]?.toLowerCase() || '')
+        );
+        if (playerIndex !== -1) {
+            depthPosition = playerIndex + 1;
+            playerPos = pos;
+            backupPlayer = players[playerIndex + 1];
+            break;
+        }
+    }
+
+    // 5. Build availability data
+    const injuryDesignation = playerInfo?.injury?.designation || 'Healthy';
+    // Map Tank01 designation to our enum
+    const normalizedDesignation: 'IR' | 'PUP' | 'NFI' | 'none' =
+        injuryDesignation === 'IR' ? 'IR' :
+            injuryDesignation === 'PUP' ? 'PUP' :
+                injuryDesignation === 'NFI' ? 'NFI' : 'none';
+
+    const availability = {
+        player_id: playerInfo?.playerID || 'unknown',
+        name: playerName,
+        position: playerPos,
+        team: teamAlias,
+        injury_status: normalizeInjuryStatus(injuryDesignation),
+        injury_designation: normalizedDesignation,
+        injury_body_part: playerInfo?.injury?.injuryArea,
+        injury_severity: playerInfo?.injury ? 'moderate' as const : 'unknown' as const,
+        practice_participation: {} as Record<string, 'DNP' | 'LP' | 'FP'>,
+        injury_trend: 'unchanged' as const,
+        returning_from_injury_flag: false,
+        snap_limit_expectation: (injuryDesignation === 'Questionable' ? 'unknown' : 'no') as 'yes' | 'no' | 'unknown',
+        game_time_decision_flag: injuryDesignation === 'Questionable' || injuryDesignation === 'Doubtful'
+    };
+
+    // 6. Build depth context
+    const depthContext = {
         depth_chart_position: depthPosition,
-        direct_backup_player_id: backupId,
+        direct_backup_player_id: backupPlayer?.playerID,
         backup_experience_flag: false,
-        committee_risk_flag: depthPosition > 2,
+        committee_risk_flag: depthPosition > 1 && playerPos === 'RB',
         positional_thinness_flag: false,
         emergency_elevation_flag: false
     };
 
-    // 5. Compute Volatility
+    // 7. Check for team-wide injury concerns (O-Line, key defenders)
+    const olPositions = ['OT', 'OG', 'C', 'LT', 'RT', 'LG', 'RG'];
+    const olInjuries = roster.filter(p =>
+        olPositions.includes(p.pos) &&
+        p.injury?.designation &&
+        p.injury.designation !== 'Healthy'
+    );
+
+    // 8. Compute Volatility
     const volatility = calculateVolatility(availability, depthContext);
 
-    // 6. Build Final Packet
-    return {
-        game_context: {
-            season: context.season,
-            week: context.week,
-            game_id: gameData.game_id,
-            team: teamAlias,
-            opponent: gameData.opponent_alias,
-            home_away: gameData.home_away,
-            kickoff_time: gameData.scheduled,
-            days_rest: 7, // Mock for now
-            short_week_flag: false,
-            data_freshness_timestamp: new Date().toISOString()
-        },
+    // 9. Build Final Packet
+    const packet: InsiderPacket = {
+        game_context: gameContext,
         player_availability: availability,
         depth_chart: depthContext,
         recent_usage: {
@@ -132,22 +134,22 @@ export async function assembleInsiderPacket(playerName: string, teamAlias: strin
             role_contraction_flag: false
         },
         offensive_line: {
-            starting_ol_expected: 5,
-            ol_injuries: [],
+            starting_ol_expected: 5 - olInjuries.length,
+            ol_injuries: olInjuries.map(p => `${p.longName} (${p.injury?.designation || 'Unknown'})`),
             ol_replacements: [],
-            ol_continuity_score: 1.0,
-            protection_downgrade_flag: false,
-            run_blocking_downgrade_flag: false
+            ol_continuity_score: olInjuries.length === 0 ? 1.0 : Math.max(0.5, 1 - (olInjuries.length * 0.15)),
+            protection_downgrade_flag: olInjuries.length >= 2,
+            run_blocking_downgrade_flag: olInjuries.length >= 2
         },
         defensive_line: {
-            cb1_status: 'Healthy',
+            cb1_status: 'Unknown',
             cb1_replacement_quality: 'N/A',
-            edge_rusher_status: 'Healthy',
-            interior_dl_status: 'Healthy',
-            lb_run_def_status: 'Healthy',
-            safety_deep_role_status: 'Healthy'
+            edge_rusher_status: 'Unknown',
+            interior_dl_status: 'Unknown',
+            lb_run_def_status: 'Unknown',
+            safety_deep_role_status: 'Unknown'
         },
-        coaching: { // Mocked Context
+        coaching: {
             head_coach: 'Unknown',
             offensive_coordinator: 'Unknown',
             defensive_coordinator: 'Unknown',
@@ -159,7 +161,20 @@ export async function assembleInsiderPacket(playerName: string, teamAlias: strin
             missing_fields: [],
             stale_data_flags: [],
             conflicting_reports_flag: false,
-            last_updated_by_source: 'Sportradar Official'
+            last_updated_by_source: 'Tank01 RapidAPI'
         }
     };
+
+    // 8. Fetch and add recent news about the player
+    try {
+        const news = await getPlayerNews(playerName);
+        if (news.length > 0) {
+            (packet as any).recent_news = news.map(n => n.title);
+            console.log(`[Insider] Added ${news.length} news headlines for ${playerName}`);
+        }
+    } catch (e) {
+        console.warn('[Insider] Failed to fetch player news:', e);
+    }
+
+    return packet;
 }

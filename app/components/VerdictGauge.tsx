@@ -7,14 +7,16 @@ interface VerdictGaugeProps {
 }
 
 export const VerdictGauge: React.FC<VerdictGaugeProps> = ({ report }) => {
-    const { status, confidence, content, dataPoints } = report;
+    const { status, confidence, content, dataPoints, structuredData } = report;
 
     if (status !== 'completed') return null;
 
-    const isBet = confidence > 75;
-    const color = isBet ? 'text-green-500' : 'text-red-500';
-    const bgColor = isBet ? 'bg-green-500' : 'bg-red-500';
-    const borderColor = isBet ? 'border-green-500' : 'border-red-500';
+    // Use the actual projection from the LLM analysis, not just confidence
+    const projection = structuredData?.analysis?.projection || 'Inconclusive';
+    const isAboveLine = projection === 'Above Line';
+    const color = isAboveLine ? 'text-green-500' : projection === 'Below Line' ? 'text-amber-500' : 'text-zinc-500';
+    const bgColor = isAboveLine ? 'bg-green-500' : projection === 'Below Line' ? 'bg-amber-500' : 'bg-zinc-500';
+    const borderColor = isAboveLine ? 'border-green-500' : projection === 'Below Line' ? 'border-amber-500' : 'border-zinc-500';
 
     return (
         <div className="w-full animate-in fade-in slide-in-from-bottom-10 duration-1000">
@@ -43,14 +45,14 @@ export const VerdictGauge: React.FC<VerdictGaugeProps> = ({ report }) => {
                         </div>
                     </div>
 
-                    <div className={`mt-6 px-4 py-1.5 border border-dashed text-lg font-mono uppercase tracking-widest ${isBet ? 'border-brand-green text-brand-green bg-brand-green/10' : 'border-red-500 text-red-500 bg-red-500/10'}`}>
-                        {isBet ? 'RECOMMENDATION: BET' : 'RECOMMENDATION: FADE'}
+                    <div className={`mt-6 px-4 py-1.5 border border-dashed text-lg font-mono uppercase tracking-widest ${isAboveLine ? 'border-brand-green text-brand-green bg-brand-green/10' : projection === 'Below Line' ? 'border-amber-500 text-amber-500 bg-amber-500/10' : 'border-zinc-500 text-zinc-500 bg-zinc-500/10'}`}>
+                        {isAboveLine ? 'DATA SUPPORTS: ABOVE LINE' : projection === 'Below Line' ? 'DATA SUPPORTS: BELOW LINE' : 'DATA: INCONCLUSIVE'}
                     </div>
                 </div>
 
                 {/* Text Content */}
                 <div className="text-left space-y-4">
-                    <h2 className="text-2xl font-black italic text-zinc-100">THE VERDICT</h2>
+                    <h2 className="text-2xl font-black italic text-zinc-100">DATA ANALYSIS</h2>
                     <p className="text-md text-zinc-400 font-mono leading-relaxed border-l border-brand-cyan/20 pl-4">
                         {content}
                     </p>

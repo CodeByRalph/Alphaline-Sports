@@ -36,10 +36,24 @@ export async function POST(request: Request) {
 
                 const packet = await ScoutPacketAssembler.create({
                     playerName: player,
-                    propLine: { value: lineValue, type: prop as any }, // Prop parsing needs improvement strictly speaking but OK for demo
+                    propLine: { value: lineValue, type: prop as any },
                     season: context.season,
                     week: context.week,
-                    teamAlias
+                    teamAlias,
+                    // Pass shared Tank01 game context for alignment with Insider/Meteorologist
+                    gameContext: stats?.nextGame ? {
+                        opponent: stats.nextGame.opponent,
+                        gameDate: stats.nextGame.gameDate,
+                        location: stats.nextGame.location
+                    } : undefined,
+                    // Pass Tank01 player data for enriched analysis
+                    playerData: stats ? {
+                        playerID: stats.playerID,
+                        longName: stats.longName,
+                        team: stats.team,
+                        pos: stats.pos,
+                        games: stats.games || []
+                    } : undefined
                 });
 
                 // Analyze with AI
@@ -50,12 +64,15 @@ export async function POST(request: Request) {
                     content: analysis.analysis,
                     confidence: analysis.confidence * 10, // Scale 0-100
                     dataPoints: analysis.key_factors,
-                    // Full packet attached for debug/frontend
-                    packet: packet
+                    // Include structured data for Master Agent consumption
+                    structuredData: {
+                        packet: packet,
+                        analysis: analysis
+                    }
                 });
 
 
-            case 'insider':
+            case 'insider': {
                 const { InsiderAgent } = await import('@/app/lib/insider-packet/agent');
                 // We need team alias. Scout logic has a map, we can reuse or just use the passed team logic
                 // Replicating basic team resolution for now
@@ -66,7 +83,7 @@ export async function POST(request: Request) {
                 };
                 const insiderTeam = teamOverride || insiderTeamMap[player] || stats?.team || 'BAL';
 
-                const insiderReport = await InsiderAgent.analyze(player, insiderTeam);
+                const insiderReport = await InsiderAgent.analyze(player, insiderTeam, stats);
 
                 if (!insiderReport || !insiderReport.analysis) {
                     return NextResponse.json({
@@ -82,9 +99,8 @@ export async function POST(request: Request) {
                 const contentStr = insiderAnalysis.insider_brief.join(' ');
 
                 // Determine confidence based on availability grade
-                let conf = 85;
-                if (insiderAnalysis.availability_overview.overall_availability_grade === 'Caution') conf = 65;
-                if (insiderAnalysis.availability_overview.overall_availability_grade === 'Risk') conf = 40;
+                const grade = insiderAnalysis.availability_overview.overall_availability_grade;
+                const conf = grade === 'Risk' ? 40 : grade === 'Caution' ? 65 : 85;
 
                 return NextResponse.json({
                     title: 'Locker Room Intel',
@@ -97,6 +113,7 @@ export async function POST(request: Request) {
                     ],
                     structuredData: insiderReport.packet // Pass packet if needed, or we could pass analysis
                 });
+            }
 
 
             case 'meteorologist':
@@ -124,16 +141,40 @@ export async function POST(request: Request) {
                     structuredData: meteorReport
                 });
 
-            case 'bookie':
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-                const bookieContext = nextGame ? `facing ${nextGame.opponent}` : 'in this matchup';
+            case 'bookie': {
+                const { runMasterAgent } = await import('@/app/lib/master-packet/agent');
+
+                // Extract context provided by frontend
+                const { context: reportContext } = body;
+
+                // Reconstruct the packets from the report context
+                // Note: The reports contain 'structuredData' which should be our raw packets
+                const scoutPacket = reportContext?.scout?.structuredData?.packet || reportContext?.scout?.structuredData;
+                const insiderPacket = reportContext?.insider?.structuredData;
+                const meteorPacket = reportContext?.meteorologist?.structuredData;
+
+                const betContext = {
+                    playerName: player,
+                    propType: prop,
+                    propLine: Number(body.line || 0),
+                    propSide: 'Over' as const // Defaulting for now, could be inferred or passed
+                };
+
+                const masterPacket = await runMasterAgent(
+                    betContext,
+                    scoutPacket || null,
+                    insiderPacket || null,
+                    meteorPacket || null
+                );
 
                 return NextResponse.json({
-                    title: 'The Verdict',
-                    content: `Synthesizing the data: ${player} is ${bookieContext}. The weather (${nextGame?.weather || 'N/A'}) and defensive matchup (${nextGame?.oppDefenseRank || 'N/A'}) suggest a favorable spot. Sharp money is tracking towards the implied direction.`,
-                    confidence: 88,
-                    dataPoints: ['Sharp Action: High', 'Model skew: Positive', 'Public: Split'],
+                    title: 'Data Analysis',
+                    content: masterPacket.confidence_explanation,
+                    confidence: Math.round(masterPacket.analysis.confidence_score * 100),
+                    dataPoints: masterPacket.analysis_summary.slice(0, 3), // Show top 3 summary points
+                    structuredData: masterPacket
                 });
+            }
 
             default:
                 return NextResponse.json({ error: 'Invalid Agent' }, { status: 400 });

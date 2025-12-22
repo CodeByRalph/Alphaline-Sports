@@ -27,6 +27,45 @@ export const AgentCard: React.FC<AgentCardProps> = ({ report }) => {
         }
     };
 
+    // Extract game context from structured data for display
+    const getGameContext = (): { team: string; opponent: string; isHome: boolean; date?: string } | null => {
+        const data = report.structuredData;
+        if (!data) return null;
+
+        // Scout packet format
+        if (data.packet?.meta) {
+            return {
+                team: data.packet.meta.team,
+                opponent: data.packet.meta.opponent || 'TBD',
+                isHome: data.packet.meta.home_away === 'home',
+                date: data.packet.meta.prop_line?.type ? undefined : undefined
+            };
+        }
+
+        // Insider packet format (passed directly or nested)
+        if (data.game_context) {
+            return {
+                team: data.game_context.team,
+                opponent: data.game_context.opponent,
+                isHome: data.game_context.home_away === 'home',
+                date: data.game_context.kickoff_time
+            };
+        }
+
+        // Meteorologist format
+        if (data.game) {
+            const location = data.game.location || '';
+            return {
+                team: data.player?.team || 'Team',
+                opponent: data.game.opponent,
+                isHome: location.toLowerCase().includes('home'),
+                date: undefined
+            };
+        }
+
+        return null;
+    };
+
     if (status === 'working') {
         return (
             <div className="h-64 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-6 relative overflow-hidden flex flex-col justify-center items-center">
@@ -63,6 +102,19 @@ export const AgentCard: React.FC<AgentCardProps> = ({ report }) => {
                     <span className="text-xs font-mono font-bold text-zinc-300">{confidence}%</span>
                 </div>
             </div>
+
+            {/* Game Context Badge - Shows which game is being analyzed */}
+            {getGameContext() && (
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded text-[10px] font-mono">
+                    <span className="text-zinc-500">ANALYZING:</span>
+                    <span className="text-brand-cyan font-bold">{getGameContext()?.team}</span>
+                    <span className="text-zinc-600">{getGameContext()?.isHome ? 'vs' : '@'}</span>
+                    <span className="text-zinc-300">{getGameContext()?.opponent}</span>
+                    {getGameContext()?.date && (
+                        <span className="text-zinc-600 ml-auto">{getGameContext()?.date}</span>
+                    )}
+                </div>
+            )}
 
 
             {/* Data Feed Content */}

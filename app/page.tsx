@@ -73,12 +73,46 @@ export default function WarRoom() {
     }));
 
     // 2. Sequential Bookie Agent (Reading the others)
-    const bookieResult = await fetchAgentAnalysis('bookie');
+    // We construct the context object to pass to the backend
+    const context = {
+      scout: results[0],
+      insider: results[1],
+      meteorologist: results[2]
+    };
 
-    setReports(prev => ({
-      ...prev,
-      bookie: bookieResult
-    }));
+    // We need to pass this context to the fetch function. 
+    // Since fetchAgentAnalysis didn't support it, we'll call the API directly here or modify the function.
+    // Modifying the function is cleaner but for now let's just make the specific call for the bookie here to be explicit/functional.
+
+    try {
+      const prop = `${propValue} ${propType}`;
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          player,
+          prop,
+          line: propValue,
+          agent: 'bookie',
+          // PASS THE CONTEXT
+          context: context
+        }),
+      });
+      const bookieData = await res.json();
+      const bookieReport = { ...bookieData, role: 'bookie', status: 'completed' } as AgentReport;
+
+      setReports(prev => ({
+        ...prev,
+        bookie: bookieReport
+      }));
+
+    } catch (e) {
+      console.error("Bookie Failed", e);
+      setReports(prev => ({
+        ...prev,
+        bookie: { ...prev.bookie, status: 'completed', content: 'Master Agent Offline', confidence: 0 }
+      }));
+    }
 
     setIsAnalyzing(false);
   };
