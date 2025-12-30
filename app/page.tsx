@@ -1,5 +1,9 @@
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Bot, Cpu, Zap, Activity, Brain, Shield } from 'lucide-react';
+import { Nav } from '@/app/components/Nav';
 
 export default function LandingPage() {
   return (
@@ -11,31 +15,16 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
 
-      {/* Navigation */}
-      <nav className="relative z-50 w-full max-w-7xl mx-auto px-6 py-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 relative">
-            <img src="/iso-logo.png" alt="Alphaline" className="w-full h-full object-contain" />
-          </div>
-          <span className="text-xl font-black italic tracking-tighter">ALPHALINE <span className="text-brand-cyan not-italic">SPORTS</span></span>
-        </div>
-        <div className="flex gap-6">
-          <Link href="/dashboard" className="px-6 py-2 text-sm font-mono uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
-            Login
-          </Link>
-          <Link href="/dashboard" className="px-6 py-2 bg-white text-black text-sm font-mono uppercase tracking-widest border border-white hover:bg-transparent hover:border-brand-cyan hover:text-brand-cyan transition-all duration-300">
-            Join Now
-          </Link>
-        </div>
-      </nav>
+      <Nav />
 
       {/* Hero Section */}
-      <main className="relative z-10 pt-32 pb-40 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+      <main className="relative z-10 pt-12 pb-24 lg:pt-32 lg:pb-40 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
 
-          {/* Left: Text Content */}
-          <div className="space-y-6 animate-in fade-in slide-in-from-left-10 duration-1000">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-brand-green text-xs font-mono uppercase tracking-widest mb-4">
+          {/* Text Content */}
+          <div className="flex flex-col items-center lg:items-start space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-brand-green text-[10px] lg:text-xs font-mono uppercase tracking-widest">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-green"></span>
@@ -43,82 +32,108 @@ export default function LandingPage() {
               System Online v2.0
             </div>
 
-            <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9]">
-              SPORTS <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-green">INTELLIGENCE</span> <br />
-              EVOLVED.
-            </h1>
+            {/* Headlines */}
+            <div className="text-center lg:text-left space-y-2 lg:space-y-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-black italic tracking-tighter leading-[0.95] lg:leading-[0.9]">
+                SPORTS <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-green">INTELLIGENCE</span> <br />
+                EVOLVED.
+              </h1>
 
-            <p className="text-xl text-zinc-400 max-w-lg leading-relaxed border-l-2 border-brand-cyan/20 pl-6">
-              Clarity in a world of noise. Alphaline's autonomous agents synthesize millions of data points into a single, calibrated signal—empowering you to make decisions based on cold, hard logic.
-            </p>
+              <p className="text-base sm:text-lg lg:text-xl text-zinc-400 max-w-prose lg:max-w-lg leading-relaxed lg:border-l-2 lg:border-brand-cyan/20 lg:pl-6 mx-auto lg:mx-0">
+                Clarity in a world of noise. Alphaline's autonomous agents synthesize millions of data points into a single, calibrated signal.
+              </p>
+            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="/dashboard" className="group relative px-8 py-4 bg-brand-cyan text-black font-bold uppercase tracking-widest hover:bg-white transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden">
+            {/* CTAs */}
+            <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-4 pt-4">
+              <Link href="/dashboard" className="group relative w-full sm:w-auto h-14 lg:h-12 px-8 bg-brand-cyan text-black font-bold uppercase tracking-widest hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden rounded">
                 <span className="relative z-10">Get Initial Analysis</span>
                 <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 skew-y-12" />
               </Link>
-              <Link href="/dashboard" className="px-8 py-4 bg-transparent border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:border-brand-cyan hover:text-brand-cyan transition-colors flex items-center justify-center">
+              <Link href="/dashboard" className="w-full sm:w-auto h-14 lg:h-12 px-8 bg-transparent border border-zinc-800 text-zinc-300 font-bold uppercase tracking-widest hover:border-brand-cyan hover:text-brand-cyan transition-colors flex items-center justify-center rounded">
                 View Demo
               </Link>
             </div>
           </div>
 
-          {/* Right: Visual */}
-          <div className="relative animate-in fade-in slide-in-from-right-10 duration-1000 delay-200">
-            <div className="relative z-10 grid grid-cols-2 gap-4">
-              {/* Visual Cards representing the agents */}
-              <div className="col-span-2 bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-6 rounded-lg transform hover:-translate-y-2 transition-transform duration-500 group">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20 group-hover:border-purple-500/50 transition-colors">
-                    <Brain className="w-6 h-6 text-purple-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white">Master Agent</h3>
-                    <p className="text-xs text-zinc-500 font-mono uppercase">Synthesis Engine</p>
+          {/* Agent Visual (Dashboard Card) */}
+          <div className="relative w-full max-w-md mx-auto lg:max-w-none mt-12 lg:mt-0 animate-in fade-in slide-in-from-bottom-8 lg:slide-in-from-right-10 duration-1000 delay-200">
+            <div className="relative z-10 flex flex-col gap-4">
+
+              {/* Master Agent Card */}
+              <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-lg shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-brand-cyan opacity-50" />
+
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20">
+                      <Brain className="w-6 h-6 text-purple-500" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-white tracking-wide">Master Agent</h3>
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      </div>
+                      <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">Synthesis Engine</p>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 w-[85%]" />
+
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end border-b border-zinc-900 pb-2">
+                    <span className="text-xs font-mono text-zinc-500 uppercase">Confidence Score</span>
+                    <span className="text-3xl font-black text-white tabular-nums tracking-tighter">87<span className="text-sm text-zinc-600">%</span></span>
                   </div>
-                  <div className="flex justify-between text-xs font-mono text-zinc-500">
-                    <span>Confidence</span>
-                    <span className="text-purple-400">85%</span>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-mono uppercase text-zinc-500">
+                      <span>Analysis Vector</span>
+                      <span className="text-brand-cyan">Optimized</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-purple-500 to-brand-cyan w-[87%]" />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-6 rounded-lg transform hover:-translate-y-2 transition-transform duration-500 delay-75 group">
-                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center border border-brand-cyan/20 mb-4 group-hover:border-brand-cyan/50 transition-colors">
-                  <Activity className="w-5 h-5 text-brand-cyan" />
+              {/* Sub Agents Grid (Hidden on very small screens if needed, otherwise stacked) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-lg transform lg:group-hover:translate-x-2 transition-transform duration-500">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Activity className="w-4 h-4 text-brand-cyan" />
+                    <span className="text-xs font-bold text-zinc-300 uppercase">Scout</span>
+                  </div>
+                  <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-brand-cyan w-[92%]" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-sm mb-1">Scout Agent</h3>
-                <p className="text-[10px] text-zinc-500 uppercase leading-none">Historical Data Recon</p>
-              </div>
-
-              <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-6 rounded-lg transform hover:-translate-y-2 transition-transform duration-500 delay-100 group">
-                <div className="w-10 h-10 bg-brand-green/10 rounded-lg flex items-center justify-center border border-brand-green/20 mb-4 group-hover:border-brand-green/50 transition-colors">
-                  <Shield className="w-5 h-5 text-brand-green" />
+                <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-lg transform lg:group-hover:-translate-x-2 transition-transform duration-500">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Shield className="w-4 h-4 text-brand-green" />
+                    <span className="text-xs font-bold text-zinc-300 uppercase">Insider</span>
+                  </div>
+                  <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-brand-green w-[78%]" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-sm mb-1">Insider Agent</h3>
-                <p className="text-[10px] text-zinc-500 uppercase leading-none">Injury & Roster Intel</p>
               </div>
             </div>
 
             {/* Abstract Elements */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border border-zinc-800 rounded-full opacity-20 animate-spin-slow pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-dashed border-zinc-800 rounded-full opacity-20 animate-spin-reverse-slow pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border border-zinc-800/50 rounded-full opacity-20 animate-spin-slow pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-dashed border-zinc-800/50 rounded-full opacity-20 animate-spin-reverse-slow pointer-events-none" />
           </div>
 
         </div>
       </main>
 
       {/* Feature Strip */}
-      <section className="border-y border-zinc-900 bg-black/50 backdrop-blur-sm py-16">
+      <section className="border-y border-zinc-900 bg-black/50 backdrop-blur-sm py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-brand-cyan/30 transition-colors group">
+          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-brand-cyan/30 transition-colors group rounded-lg">
             <div className="mb-4 text-brand-cyan">
               <Activity className="w-8 h-8" />
             </div>
@@ -128,7 +143,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-brand-green/30 transition-colors group">
+          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-brand-green/30 transition-colors group rounded-lg">
             <div className="mb-4 text-brand-green">
               <Zap className="w-8 h-8" />
             </div>
@@ -138,7 +153,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-purple-500/30 transition-colors group">
+          <div className="bg-zinc-900/20 p-6 border border-zinc-800/50 hover:border-purple-500/30 transition-colors group rounded-lg">
             <div className="mb-4 text-purple-500">
               <Cpu className="w-8 h-8" />
             </div>

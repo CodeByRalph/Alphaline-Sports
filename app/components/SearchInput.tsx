@@ -33,85 +33,68 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     onAnalyze,
     isAnalyzing
 }) => {
+    const [isFocused, setIsFocused] = React.useState(false);
+
     return (
-        <div className="w-full max-w-6xl mx-auto bg-brand-black/90 border border-zinc-800 p-2 md:p-4 rounded-xl shadow-2xl backdrop-blur-xl">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-1">
-                {/* Player Input (Full width on mobile, 5 cols on MD) */}
-                <div className="col-span-12 md:col-span-5 relative group">
-                    <div className="absolute top-2 left-4 text-[10px] uppercase font-black tracking-widest text-zinc-600 pointer-events-none group-focus-within:text-brand-cyan transition-colors">Target Athlete</div>
+        <div className="w-full max-w-5xl mx-auto flex items-center justify-center py-4">
+            <div className="w-full flex items-center p-1 bg-zinc-900/80 border border-zinc-800 rounded-lg gap-2 shadow-lg backdrop-blur-sm">
+
+                {/* Target Athlete - 50% */}
+                <div className="flex-[2] relative group">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <Search className={`w-4 h-4 transition-colors ${isFocused ? 'text-cyan-400' : 'text-zinc-500'}`} />
+                    </div>
                     <input
                         type="text"
-                        placeholder="e.g. Lamar Jackson"
                         value={player}
                         onChange={(e) => setPlayer(e.target.value)}
-                        disabled={isAnalyzing}
-                        className="w-full h-16 bg-zinc-900/40 border border-zinc-800 text-zinc-100 px-4 pt-5 pb-1 rounded-lg focus:ring-1 focus:ring-brand-cyan/50 focus:border-brand-cyan outline-none transition-all placeholder:text-zinc-700 font-bold text-lg"
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        placeholder="TARGET ATHLETE"
+                        className="w-full h-12 bg-zinc-950/50 border border-transparent focus:border-cyan-500/50 rounded text-zinc-100 placeholder:text-zinc-600 pl-10 pr-4 text-sm font-bold tracking-wider outline-none transition-all uppercase font-mono"
                     />
                 </div>
 
-                {/* Prop Value Input (half width on mobile, 2 cols on MD) */}
-                <div className="col-span-6 md:col-span-2 relative group">
-                    <div className="absolute top-2 left-4 text-[10px] uppercase font-black tracking-widest text-zinc-600 pointer-events-none group-focus-within:text-brand-green transition-colors">Line</div>
+                {/* Line - Split */}
+                <div className="flex-1 relative">
                     <input
-                        type="number"
-                        placeholder="0.0"
+                        type="text"
                         value={propValue}
                         onChange={(e) => setPropValue(e.target.value)}
-                        disabled={isAnalyzing}
-                        className="w-full h-16 bg-zinc-900/40 border border-zinc-800 text-zinc-100 px-4 pt-5 pb-1 rounded-lg focus:ring-1 focus:ring-brand-green/50 focus:border-brand-green outline-none transition-all placeholder:text-zinc-700 font-mono text-lg remove-arrow"
+                        placeholder="LINE (e.g. 250)"
+                        className="w-full h-12 bg-zinc-950/50 border border-transparent focus:border-cyan-500/50 rounded text-zinc-100 placeholder:text-zinc-600 px-4 text-center text-sm font-bold tracking-wider outline-none transition-all font-mono"
                     />
                 </div>
 
-                {/* Prop Type Dropdown (half width on mobile, 3 cols on MD) */}
-                <div className="col-span-6 md:col-span-3 relative group">
-                    <div className="absolute top-2 left-4 text-[10px] uppercase font-black tracking-widest text-zinc-600 pointer-events-none group-focus-within:text-brand-cyan transition-colors">Market</div>
-                    <select
-                        value={propType}
-                        onChange={(e) => setPropType(e.target.value)}
-                        disabled={isAnalyzing}
-                        className="w-full h-16 bg-zinc-900/40 border border-zinc-800 text-zinc-100 px-4 pt-5 pb-1 rounded-lg focus:ring-1 focus:ring-brand-cyan/50 focus:border-brand-cyan outline-none transition-all appearance-none font-bold text-sm md:text-lg cursor-pointer truncate pr-8"
-                    >
-                        {PROP_TYPES.map((type) => (
-                            <option key={type} value={type} className="bg-zinc-900">{type}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 mt-2 -translate-y-1/2 text-zinc-600 pointer-events-none w-5 h-5 group-hover:text-zinc-400 transition-colors" />
+                {/* Market - Split */}
+                <div className="flex-1 relative">
+                    <div className="relative w-full h-12">
+                        <select
+                            value={propType}
+                            onChange={(e) => setPropType(e.target.value)}
+                            className="w-full h-full appearance-none bg-zinc-950/50 border border-transparent focus:border-cyan-500/50 rounded text-zinc-100 px-4 text-sm font-bold tracking-wider outline-none transition-all font-mono uppercase cursor-pointer"
+                        >
+                            {PROP_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                            <ChevronDown className="w-3 h-3" />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Analyze Button (Full width on mobile, 2 cols on MD) */}
-                <div className="col-span-12 md:col-span-2">
-                    <button
-                        onClick={onAnalyze}
-                        disabled={isAnalyzing || !player || !propValue}
-                        className={`w-full h-16 flex items-center justify-center gap-2 font-black uppercase tracking-wider rounded-lg transition-all transform active:scale-[0.98]
-                        ${isAnalyzing || !player || !propValue
-                                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700'
-                                : 'bg-brand-cyan hover:bg-cyan-400 text-brand-black shadow-[0_0_20px_rgba(64,240,255,0.4)] hover:shadow-[0_0_30px_rgba(64,240,255,0.6)] border border-brand-cyan'
-                            }`}
-                    >
-                        {isAnalyzing ? (
-                            <div className="flex items-center gap-2 animate-pulse">
-                                <span className="w-2 h-2 rounded-full bg-black animate-bounce" />
-                                <span className="w-2 h-2 rounded-full bg-black animate-bounce delay-75" />
-                                <span className="w-2 h-2 rounded-full bg-black animate-bounce delay-150" />
-                            </div>
-                        ) : (
-                            <>SCOUT <Search className="w-4 h-4 ml-1 stroke-2" /></>
-                        )}
-                    </button>
-                </div>
+                {/* Scout Button - Solid Fill */}
+                <button
+                    onClick={onAnalyze}
+                    disabled={isAnalyzing || !player}
+                    className={`h-12 px-8 rounded font-bold text-sm tracking-widest transition-all uppercase flex-shrink-0
+                        ${isAnalyzing
+                            ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                            : 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-[0_0_15px_rgba(6_182_212_0.3)]'
+                        }`}
+                >
+                    {isAnalyzing ? 'SCANNING...' : 'INITIATE SCOUT'}
+                </button>
             </div>
-            <style jsx>{`
-                /* Remove arrows from number input */
-                .remove-arrow::-webkit-outer-spin-button,
-                .remove-arrow::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-                .remove-arrow {
-                    -moz-appearance: textfield;
-                }
-            `}</style>
         </div>
     );
 };

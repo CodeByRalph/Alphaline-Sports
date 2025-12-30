@@ -66,111 +66,106 @@ export const AgentCard: React.FC<AgentCardProps> = ({ report }) => {
         return null;
     };
 
+    // If working, show minimal indicator or static text? 
+    // The prompt requested static styling. Let's keep the internal content logic but strip the container styling to match parent.
+    // Actually the parent handles the container/header. The AgentCard should now just fill the body.
+
     if (status === 'working') {
         return (
-            <div className="h-64 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-6 relative overflow-hidden flex flex-col justify-center items-center">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-                <div className="z-10 text-zinc-400 font-mono text-sm animate-pulse">Running Analysis...</div>
+            <div className="h-full flex flex-col justify-center items-center text-zinc-600 font-mono text-xs animate-pulse">
+                <p>Establishing Uplink...</p>
+                <div className="w-1/2 h-0.5 bg-zinc-800 mt-2 overflow-hidden">
+                    <div className="w-full h-full bg-zinc-600 animate-slide-fast" />
+                </div>
             </div>
         );
     }
 
     if (status === 'idle') {
+        // Show static placeholders as requested
         return (
-            <div className="h-64 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 flex items-center justify-center">
-                <span className="text-zinc-600 font-mono text-sm">Waiting for target...</span>
+            <div className="h-full font-mono text-xs text-zinc-600 flex flex-col gap-2">
+                <div className="flex justify-between border-b border-zinc-900 pb-1">
+                    <span>STATUS</span>
+                    <span className="text-zinc-500">STANDBY</span>
+                </div>
+                {role === 'scout' && (
+                    <>
+                        <div className="flex justify-between"><span>GAMES_INDEXED</span> <span>14,204</span></div>
+                        <div className="flex justify-between"><span>ACTIVE_PLAYERS</span> <span>1,642</span></div>
+                        <div className="flex justify-between"><span>DATA_STREAM</span> <span>CONNECTED</span></div>
+                    </>
+                )}
+                {role === 'insider' && (
+                    <>
+                        <div className="truncate">› Schefter: 'Source confirms active...'</div>
+                        <div className="truncate">› Rapoport: 'Monitor pre-game warmup...'</div>
+                        <div className="truncate">› Team: 'Elevated from practice squad...'</div>
+                    </>
+                )}
+                {role === 'meteorologist' && (
+                    <>
+                        <div className="flex justify-between"><span>WIND_SPEED</span> <span>-- MPH</span></div>
+                        <div className="flex justify-between"><span>PRECIP_CHANCE</span> <span>0%</span></div>
+                        <div className="flex justify-between"><span>STADIUM_TYPE</span> <span>DOME</span></div>
+                    </>
+                )}
             </div>
         )
     }
 
+    // Active State - Simplified (No Card Container, Just Content)
     return (
-        <div className={`h-full group relative rounded-sm border ${getBorderColor()} bg-brand-black/90 px-5 py-4 flex flex-col gap-4 shadow-xl transition-all duration-300 hover:border-opacity-100 border-opacity-40`}>
-
-            {/* Terminal Header */}
-            <div className="flex items-center justify-between border-b border-dashed border-zinc-800 pb-3">
-                <div className="flex items-center gap-3">
-                    {getIcon()}
-                    <div className="flex flex-col">
-                        <h3 className="font-extrabold text-sm text-zinc-100 tracking-wider font-mono uppercase">{role}_AGENT</h3>
-                        <p className="text-zinc-500 text-[10px] font-mono uppercase tracking-tight">ID: {title.replace(/\s/g, '_').toUpperCase()}</p>
-                    </div>
-                </div>
-
-                {/* Confidence Stat */}
-                <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded-sm">
-                    <div className={`w-1.5 h-1.5 rounded-full ${confidence > 75 ? 'bg-brand-green' : confidence > 50 ? 'bg-brand-cyan' : 'bg-brand-orange'} animate-pulse`} />
-                    <span className="text-xs font-mono font-bold text-zinc-300">{confidence}%</span>
-                </div>
-            </div>
-
-            {/* Game Context Badge - Shows which game is being analyzed */}
+        <div className="h-full flex flex-col gap-3 font-mono text-xs">
+            {/* Game Context Badge */}
             {getGameContext() && (
-                <div className="flex items-center gap-2 px-2 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded text-[10px] font-mono">
-                    <span className="text-zinc-500">ANALYZING:</span>
-                    <span className="text-brand-cyan font-bold">{getGameContext()?.team}</span>
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-zinc-900/50 border border-zinc-800 rounded text-[10px]">
+                    <span className="text-zinc-500">MATCHUP:</span>
+                    <span className="text-cyan-500 font-bold">{getGameContext()?.team}</span>
                     <span className="text-zinc-600">{getGameContext()?.isHome ? 'vs' : '@'}</span>
                     <span className="text-zinc-300">{getGameContext()?.opponent}</span>
-                    {getGameContext()?.date && (
-                        <span className="text-zinc-600 ml-auto">{getGameContext()?.date}</span>
-                    )}
                 </div>
             )}
 
-
             {/* Data Feed Content */}
-            <div className="flex-grow font-mono text-xs leading-6 text-zinc-400 overflow-y-auto custom-scrollbar">
+            <div className="flex-grow text-zinc-400 overflow-y-auto custom-scrollbar space-y-2">
                 {role === 'meteorologist' && report.structuredData?.analysis ? (
                     <div className="flex flex-col gap-3">
-                        {/* Stadium Header */}
-                        <div className="border-b border-white/5 pb-2 mb-1">
-                            <div className="text-brand-orange text-xs font-bold uppercase tracking-wider">{report.structuredData.game.stadium}</div>
-                            <div className="flex justify-between text-[10px] text-zinc-500 uppercase mt-1">
+                        <div className="border-b border-white/5 pb-2">
+                            <div className="text-orange-500 font-bold uppercase tracking-wider">{report.structuredData.game.stadium}</div>
+                            <div className="flex gap-4 text-[10px] text-zinc-500 uppercase mt-1">
                                 <span>{report.structuredData.environment.type}</span>
                                 <span>{report.structuredData.environment.field}</span>
                             </div>
                         </div>
-
-                        {/* Weather Summary */}
-                        <div className="text-zinc-300 font-bold border-l-2 border-brand-orange pl-2">
+                        <div className="text-zinc-300 pl-2 border-l border-orange-500/50">
                             {report.structuredData.environment.weather_summary}
                         </div>
-
-                        {/* Bullet Points */}
-                        <ul className="space-y-1 mt-1">
-                            {report.structuredData.analysis.user_weather_writeup.map((line: string, i: number) => (
-                                <li key={i} className="flex items-start gap-2">
-                                    <span className="text-brand-orange mt-1">›</span>
-                                    <span className="text-zinc-400">{line}</span>
-                                </li>
-                            ))}
-                        </ul>
-
-                        {/* Impact Grid */}
-                        <div className="grid grid-cols-2 gap-2 mt-2 bg-zinc-900/50 p-2 rounded border border-white/5">
+                        <div className="grid grid-cols-2 gap-2 mt-2">
                             {Object.entries(report.structuredData.analysis.impact_scores).map(([key, val]) => (
-                                <div key={key} className="flex flex-col">
-                                    <span className="text-[9px] uppercase text-zinc-600 mb-1">{key.replace(/_/g, ' ')}</span>
-                                    <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${Number(val) > 0.6 ? 'bg-red-500' : Number(val) > 0.3 ? 'bg-yellow-500' : 'bg-brand-green'}`}
-                                            style={{ width: `${Number(val) * 100}%` }}
-                                        />
-                                    </div>
+                                <div key={key} className="flex justify-between bg-zinc-900 px-2 py-1 rounded">
+                                    <span className="text-[9px] uppercase text-zinc-600">{key.replace(/_/g, ' ')}</span>
+                                    <span className={`text-[10px] font-bold ${Number(val) > 0.6 ? 'text-red-500' : 'text-green-500'}`}>{String(val)}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 ) : (
                     <>
-                        <span className="text-brand-cyan/50 mr-2">{'>'}</span>
-                        {content}
+                        {content.split('\n').map((line, i) => (
+                            <p key={i} className="leading-relaxed">
+                                <span className="text-cyan-500/30 mr-2">›</span>
+                                {line}
+                            </p>
+                        ))}
                     </>
                 )}
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-zinc-800/50">
+            {/* Tags Footer */}
+            <div className="flex flex-wrap gap-1 pt-2 border-t border-zinc-900">
                 {dataPoints.map((point, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-zinc-900/50 rounded-xs text-[10px] text-zinc-500 font-mono uppercase border border-zinc-800 truncate max-w-full">
+                    <span key={i} className="px-1.5 py-0.5 bg-zinc-900 text-[9px] text-zinc-500 uppercase rounded">
                         #{point.replace(/\s/g, '_')}
                     </span>
                 ))}

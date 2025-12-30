@@ -1,0 +1,256 @@
+[
+  {
+    "id": "c7210a06-ee37-40ff-8ca0-979007e48b30",
+    "propId": "Patrick Mahomes-Pass Yards-250-Over",
+    "snapshotId": "test-snapshot-1767117933303",
+    "createdAt": 1767117948647,
+    "baseScore": 85,
+    "postScore": 65,
+    "recommendation": "LEAN",
+    "script": {
+      "defense": "Over 250.5 pass yards is a clean Mahomes spot. Against heavy blitz looks, he’s historically efficient and productive—about 285 yards on average—because he diagnoses pressure quickly and punishes single coverage. The Raiders’ secondary sitting 28th suggests the back end isn’t equipped to hold up if Vegas sends heat or gets forced into man coverage. Add in a fully healthy Travis Kelce, and you’ve got Mahomes’ highest-leverage chain-mover and red-zone separator back at full capacity, which extends drives and keeps the yardage accumulating. The number isn’t asking for a ceiling game; it’s asking for a normal Mahomes volume/efficiency performance. Even with a moderate lead, Kansas City typically builds it through the air early, and 251 is reachable by late third quarter.",
+      "skepticQuestions": [
+        "If the rain hits hard in the 2nd half, what’s the plan if Andy Reid shifts to a short-pass/run-heavy script and the average depth of target collapses?",
+        "What happens if the Chiefs go up two scores early—do you still get enough fourth-quarter pass attempts, or does the game turn into clock-killing runs?",
+        "If the Raiders choose a softer, two-high zone and stop blitzing to avoid getting burned, does your “285 vs heavy blitz” edge disappear and turn this into a slower, underneath game?"
+      ],
+      "rebuttal": "The rain and “run-if-ahead” risks are real, but this total is still in the Mahomes comfort zone. Even if the 2nd half gets messy, the Chiefs can front-load yards before weather worsens, and Mahomes’ quick game functions as an extension of the run—still counting as pass yards. A big lead doesn’t automatically kill the over either: efficient early drives can put him near 200+ by halftime, and one or two third-quarter scoring possessions can push him over 250 before the clock-management phase. Minor flaw: this bet leans on Kansas City not going ultra-conservative late. Still, the matchup plus Kelce’s health keeps me firmly on the over."
+    },
+    "audioUrls": {
+      "defense": "/audio-cache/stress_55efe59d5117bfce.mp3",
+      "skepticQuestions": [
+        "/audio-cache/stress_ced97289b6c9e3d1.mp3",
+        "/audio-cache/stress_171d970bd7124a16.mp3",
+        "/audio-cache/stress_bca020707a040dfc.mp3"
+      ],
+      "rebuttal": "/audio-cache/stress_0879c2a5359f3613.mp3"
+    },
+    "scoringBreakdown": {
+      "hedging": {
+        "count": 0,
+        "penalty": 0,
+        "words": []
+      },
+      "contradiction": {
+        "count": 4,
+        "penalty": 8,
+        "words": [
+          "but",
+          "still"
+        ]
+      },
+      "confidence": {
+        "strongCount": 0,
+        "weakCount": 3,
+        "score": -3,
+        "penalty": 8
+      },
+      "completeness": {
+        "missedQuestions": 2,
+        "penalty": 4
+      },
+      "totalDelta": 20
+    }
+  },
+  {
+    "id": "c0bfe486-354b-4abb-88e3-32a3ee9ea12c",
+    "propId": "lamar-jackson-pass-yards-100",
+    "snapshotId": "snap-lamar-jackson-pass-yards-100-490866",
+    "createdAt": 1767118153061,
+    "baseScore": 63,
+    "postScore": 44,
+    "recommendation": "NO BET",
+    "script": {
+      "defense": "Over 100 pass yards is priced like a low bar, and the player’s history treats it that way. Season average is 188—almost double the line—and he’s cleared 100 in 10-of-10 games. Even his worst recent outing was 101, basically landing on the number. The matchup isn’t a trap either: Pittsburgh is giving up about 230 pass yards per game, roughly neutral, so we’re not asking him to beat an elite shutdown unit. The offensive line continuity is intact with all five expected starters, which reduces collapse risk and helps him reach a modest yardage threshold even if efficiency dips. Yes, the last three games trend down (157), and weather is cold and windy, but 100 yards is still a “get to halftime” kind of number. Projection stays above the line with moderate confidence.",
+      "skepticQuestions": [
+        "He’s questionable and a game-time decision with high snap volatility—what’s your plan if he’s limited, rotated, or exits early? Doesn’t that turn a safe threshold into a fragile one?",
+        "Your dataset flags inconsistencies (0 game samples, placeholder averages, even listing him as an 'S'); how confident are you that the 10/10 hit rate and season average are accurate enough to anchor the bet?",
+        "At 29°F with 15–18 mph wind and a modeled passing penalty, what if the game script shifts run-heavy and he only throws 15–20 passes—can he still reliably clear 100 without volume metrics like pass rate or yards per dropback?"
+      ],
+      "rebuttal": "The only true “kill switch” here is availability. If he’s announced active with no reported pitch count, the bar is still extremely low relative to his established baseline—he can clear 100 on routine volume. On data quality: I’ll admit the metadata issues (position tag, team sample glitches) are a minor flaw and mean we shouldn’t over-trust any single table. But the core signal is consistent across multiple references in the rationale: season yardage level and a 10-game streak above 100, with a recent floor sitting right on the line. Weather and a potential run lean lower ceiling, not necessarily a 100-yard floor. If pregame reports hint at limitation or in-game rotation risk, I’d pass; otherwise I’m still in."
+    },
+    "audioUrls": {
+      "defense": "/audio-cache/stress_5df517a227bdb9a8.mp3",
+      "skepticQuestions": [
+        "/audio-cache/stress_d6103b7542d110f3.mp3",
+        "/audio-cache/stress_5a2f32f03aab1cec.mp3",
+        "/audio-cache/stress_4e2ee0bc45042481.mp3"
+      ],
+      "rebuttal": "/audio-cache/stress_6cad83cd58766072.mp3"
+    },
+    "scoringBreakdown": {
+      "hedging": {
+        "count": 0,
+        "penalty": 0,
+        "words": []
+      },
+      "contradiction": {
+        "count": 5,
+        "penalty": 10,
+        "words": [
+          "but",
+          "still"
+        ]
+      },
+      "confidence": {
+        "strongCount": 1,
+        "weakCount": 3,
+        "score": -2,
+        "penalty": 7
+      },
+      "completeness": {
+        "missedQuestions": 1,
+        "penalty": 2
+      },
+      "totalDelta": 19
+    }
+  },
+  {
+    "id": "d56164c4-acd1-4b7e-94c5-0dff381241fd",
+    "propId": "Patrick Mahomes-Pass Yards-250-Over",
+    "snapshotId": "test-snapshot-1767118549146",
+    "createdAt": 1767118556544,
+    "baseScore": 85,
+    "postScore": 78,
+    "recommendation": "BET",
+    "script": {
+      "defense": "Over 250.5 pass yards. Mahomes eats heavy blitz—285 a game when teams send heat. Raiders secondary is 28th, they leak explosives. Kelce is fully healthy, chains stay moving. Volume plus efficiency gets you there.",
+      "skepticQuestions": [
+        "If rain hits hard in the 2nd half, why won’t Reid shorten the game and cap Mahomes at 230–240?",
+        "If KC jumps ahead early, what stops them from going run-heavy and killing pass attempts?"
+      ],
+      "rebuttal": "Rain or not, blitz + 28th-ranked coverage means easy throws and YAC—Kelce feasts. Even with a lead, Mahomes racks yards early; 250.5 is reachable by halftime pace. Verdict: still smash the over."
+    },
+    "audioUrls": {
+      "defense": "/audio-cache/stress_1c3aeaf58cf5bd5b.mp3",
+      "skepticQuestions": [
+        "/audio-cache/stress_a55ab052462095fa.mp3",
+        "/audio-cache/stress_4991d1764dadbf84.mp3"
+      ],
+      "rebuttal": "/audio-cache/stress_05cb346f6ad93cf0.mp3"
+    },
+    "scoringBreakdown": {
+      "hedging": {
+        "count": 0,
+        "penalty": 0,
+        "words": []
+      },
+      "contradiction": {
+        "count": 1,
+        "penalty": 2,
+        "words": [
+          "still"
+        ]
+      },
+      "confidence": {
+        "strongCount": 0,
+        "weakCount": 0,
+        "score": 0,
+        "penalty": 5
+      },
+      "completeness": {
+        "missedQuestions": 0,
+        "penalty": 0
+      },
+      "totalDelta": 7
+    }
+  },
+  {
+    "id": "fde81645-7628-4048-8c9c-148fdb1f17d7",
+    "propId": "lamar-jackson-pass-yards-300",
+    "snapshotId": "snap-lamar-jackson-pass-yards-300-490866",
+    "createdAt": 1767118888088,
+    "baseScore": 74,
+    "postScore": 67,
+    "recommendation": "LEAN",
+    "script": {
+      "defense": "Under 300 pass yards. He’s averaging 188—line’s inflated by 112 yards. Last 10 range: 101–288, never sniffed 300. Last 3 even colder at 157. Outdoor in Pittsburgh, 29°F with 15–18 mph wind—passing takes a hit. PIT allows ~230, not a funnel. I’m riding the under.",
+      "skepticQuestions": [
+        "If Week 18 turns into a weird, pass-heavy script (resting RBs, chasing incentives, garbage time), what stops him from spiking volume past his normal range?",
+        "He’s questionable with a snap volatility score 0.9—if he’s limited early then forced to throw late, or if the data quality is shaky, are you trusting that 0/10 trend at all?"
+      ],
+      "rebuttal": "Even with a volume spike, he needs a career-ish outlier—his 10-game ceiling is 288. Wind and cold cap explosives, PIT isn’t a sieve. If he’s limited, that helps the under. Only bet if active; otherwise pass."
+    },
+    "audioUrls": {
+      "defense": "/audio-cache/stress_7b45f27679ebd328.mp3",
+      "skepticQuestions": [
+        "/audio-cache/stress_b3d8107fd6d0e225.mp3",
+        "/audio-cache/stress_ea804ba1af4fde40.mp3"
+      ],
+      "rebuttal": "/audio-cache/stress_fb67874dcd45a348.mp3"
+    },
+    "scoringBreakdown": {
+      "hedging": {
+        "count": 0,
+        "penalty": 0,
+        "words": []
+      },
+      "contradiction": {
+        "count": 0,
+        "penalty": 0,
+        "words": []
+      },
+      "confidence": {
+        "strongCount": 0,
+        "weakCount": 2,
+        "score": -2,
+        "penalty": 7
+      },
+      "completeness": {
+        "missedQuestions": 0,
+        "penalty": 0
+      },
+      "totalDelta": 7
+    }
+  },
+  {
+    "id": "63b85f8d-08c3-4cc2-9e67-8c277be393c9",
+    "propId": "lamar-jackson-pass-yards-250",
+    "snapshotId": "snap-lamar-jackson-pass-yards-250-490866",
+    "createdAt": 1767120549805,
+    "baseScore": 62,
+    "postScore": 50,
+    "recommendation": "NO BET",
+    "script": {
+      "defense": "Under 250 is the lane. He averages 188, and he’s cleared 250 only once in 10. Last three? 157. Outdoor in Pittsburgh, 28°F with 15–18 mph wind—air attack gets choked. Matchup’s average, but the weather and trend keep this under alive.",
+      "skepticQuestions": [
+        "If your data’s noisy (position mismatch, reliability flag, missing team metrics), how sure are you this 10-game profile even belongs to the right usage context?",
+        "What if he’s active and the game script flips—down late, wind is manageable, and he hits the 288 ceiling on volume alone?"
+      ],
+      "rebuttal": "Noise or not, the core signal is massive: 9/10 under 250 and trending down. Wind + cold clips efficiency, and PIT isn’t a soft secondary. If he’s limited or sits, it’s even better. Verdict: Under 250."
+    },
+    "audioUrls": {
+      "defense": "/audio-cache/stress_025360eb3f65953f.mp3",
+      "skepticQuestions": [
+        "/audio-cache/stress_4bb6c73468530be5.mp3",
+        "/audio-cache/stress_5286bf6c4271265e.mp3"
+      ],
+      "rebuttal": "/audio-cache/stress_68e28d3f88854491.mp3"
+    },
+    "scoringBreakdown": {
+      "hedging": {
+        "count": 0,
+        "penalty": 0,
+        "words": []
+      },
+      "contradiction": {
+        "count": 1,
+        "penalty": 2,
+        "words": [
+          "but"
+        ]
+      },
+      "confidence": {
+        "strongCount": 0,
+        "weakCount": 1,
+        "score": -1,
+        "penalty": 6
+      },
+      "completeness": {
+        "missedQuestions": 2,
+        "penalty": 4
+      },
+      "totalDelta": 12
+    }
+  }
+]

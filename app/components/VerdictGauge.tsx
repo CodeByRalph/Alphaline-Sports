@@ -1,22 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AgentReport } from '@/app/types';
 import { DollarSign, AlertTriangle } from 'lucide-react';
+import { StressTestButton } from './StressTestButton';
+import { StressTestView } from './StressTestView';
+import { MasterPacket } from '@/app/lib/master-packet/types';
 
 interface VerdictGaugeProps {
     report: AgentReport;
+    betContext?: {
+        player: string;
+        propType: string;
+        line: string;
+    };
 }
 
-export const VerdictGauge: React.FC<VerdictGaugeProps> = ({ report }) => {
+export const VerdictGauge: React.FC<VerdictGaugeProps> = ({ report, betContext }) => {
     const { status, confidence, content, dataPoints, structuredData } = report;
+    const [stressTestResult, setStressTestResult] = useState<any>(null);
 
     if (status !== 'completed') return null;
 
     // Use the actual projection from the LLM analysis, not just confidence
-    const projection = structuredData?.analysis?.projection || 'Inconclusive';
+    const masterData = structuredData as MasterPacket;
+    const projection = masterData?.analysis?.projection || 'Inconclusive';
     const isAboveLine = projection === 'Above Line';
     const color = isAboveLine ? 'text-green-500' : projection === 'Below Line' ? 'text-amber-500' : 'text-zinc-500';
     const bgColor = isAboveLine ? 'bg-green-500' : projection === 'Below Line' ? 'bg-amber-500' : 'bg-zinc-500';
     const borderColor = isAboveLine ? 'border-green-500' : projection === 'Below Line' ? 'border-amber-500' : 'border-zinc-500';
+
+    // Stress Test Props
+    const propId = betContext ? `${betContext.player}-${betContext.propType}-${betContext.line}`.replace(/\s+/g, '-').toLowerCase() : 'unknown-prop';
+    const snapshotId = `snap-${propId}-${Math.floor(Date.now() / 3600000)}`; // Simple hourly snapshot ID for demo caching or stable ID if we had one
+    const pick = isAboveLine ? `Over ${betContext?.line || ''} ${betContext?.propType || ''}` :
+        projection === 'Below Line' ? `Under ${betContext?.line || ''} ${betContext?.propType || ''}` : 'No Bet';
 
     return (
         <div className="w-full animate-in fade-in slide-in-from-bottom-10 duration-1000">
@@ -48,10 +64,33 @@ export const VerdictGauge: React.FC<VerdictGaugeProps> = ({ report }) => {
                     <div className={`mt-6 px-4 py-1.5 border border-dashed text-lg font-mono uppercase tracking-widest ${isAboveLine ? 'border-brand-green text-brand-green bg-brand-green/10' : projection === 'Below Line' ? 'border-amber-500 text-amber-500 bg-amber-500/10' : 'border-zinc-500 text-zinc-500 bg-zinc-500/10'}`}>
                         {isAboveLine ? 'DATA SUPPORTS: ABOVE LINE' : projection === 'Below Line' ? 'DATA SUPPORTS: BELOW LINE' : 'DATA: INCONCLUSIVE'}
                     </div>
+
+                    {/* Stress Test Feature - Prominent Placement */}
+                    {confidence > 0 && (
+                        <div className="w-full mt-6 px-8 animate-in fade-in slide-in-from-bottom-4 delay-500">
+                            {!stressTestResult ? (
+                                <StressTestButton
+                                    propId={propId}
+                                    snapshotId={snapshotId}
+                                    baseConfidence={confidence}
+                                    pick={pick}
+                                    rationale={masterData?.analysis_summary || [content]}
+                                    riskFactors={masterData?.data_limitations || []}
+                                    onStressTestStart={() => { }}
+                                    onStressTestComplete={setStressTestResult}
+                                />
+                            ) : (
+                                <StressTestView
+                                    data={stressTestResult}
+                                    onClose={() => setStressTestResult(null)}
+                                />
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Text Content */}
-                <div className="text-left space-y-4">
+                <div className="text-left space-y-4 mb-8 border-t border-zinc-800 pt-8">
                     <h2 className="text-2xl font-black italic text-zinc-100">DATA ANALYSIS</h2>
                     <p className="text-md text-zinc-400 font-mono leading-relaxed border-l border-brand-cyan/20 pl-4">
                         {content}
@@ -64,6 +103,8 @@ export const VerdictGauge: React.FC<VerdictGaugeProps> = ({ report }) => {
                         ))}
                     </div>
                 </div>
+
+                {/* Stress Test Feature moved up */}
             </div>
         </div>
     );
